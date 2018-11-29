@@ -1,0 +1,73 @@
+*** from module airport // use map ***
+
+def from_file(filename):
+    """Parse an airport file to extract information
+    @param filename @e str: the file containing the airport description
+    @return an Airport """
+    print("Loading airport", filename + '...')
+    file = open(filename)
+    categories = {'L': WakeVortexCategory.LIGHT,
+                  'M': WakeVortexCategory.MEDIUM,
+                  'H': WakeVortexCategory.HEAVY}
+    point_types = [PointType.STAND, PointType.DEICING, PointType.RUNWAY_POINT]
+    name = file.readline().strip()
+    points, taxiways, runways = [], [], []
+    for (no, line) in enumerate(file):
+        try:
+            words = line.strip().split()
+            if words[0] == 'P':  # Point description
+                pt_type = point_types[int(words[2])]
+                points.append(NamedPoint(words[1], pt_type, words[3]))
+            elif words[0] == 'L':  # Taxiway description
+                speed = int(words[2])
+                cat = categories[words[3]]
+                one_way = words[4] == 'S'
+                xys = xys_to_points(words[5:])
+                taxiways.append(Taxiway(words[1], speed, cat, one_way, xys))
+            elif words[0] == 'R':  # Runway description
+                pts = tuple(words[4].split(','))
+                xys = xys_to_points(words[5:])
+                runways.append(Runway(words[1], words[2], words[3], xys, pts))
+        except Exception as error:
+            print(error, no, line)
+            pass
+    file.close()
+    return Airport(name, tuple(points), tuple(taxiways), tuple(runways))
+
+
+
+*** from module traffic // use flights ***
+
+def from_file(apt, filename):
+    """Parse a traffic file to extract flight plan informations
+    @param apt @e airport.Airport: the airport
+    @param filename @e str: the name of the file containing the flight plans
+    @return a Flight list"""
+    categories = {'L': airport.WakeVortexCategory.LIGHT,
+                  'M': airport.WakeVortexCategory.MEDIUM,
+                  'H': airport.WakeVortexCategory.HEAVY}
+    print("Loading traffic:", filename + '...')
+    file = open(filename)
+    flights = []
+    for (no, line) in enumerate(file):
+        try:
+            words = line.strip().split()
+            movement_type = movement_from_string(words[0])
+            flight = Flight(words[1], movement_type, categories[words[2]])
+            flight.stand = airport.get_point(apt, words[3])
+            flight.qfu = airport.get_qfu(apt, words[4])
+            flight.runway = airport.get_runway(apt, flight.qfu)
+            flight.rwy_t = int(words[6]) // STEP
+            flight.slot = None if words[7] == '_' else int(words[7]) // STEP
+            flight.route = airport.xys_to_points(words[8:])
+            flight.start_t = int(words[5]) // STEP
+            flights.append(flight)
+        except Exception as error:
+            print(error, no, line)
+            pass
+    file.close()
+    departs = [f for f in flights if f.type == Movement.DEP]
+    arrivees = [f for f in flights if f.type == Movement.ARR]
+    nb_flights = [len(departs), len(arrivees)]
+    print(str(nb_flights[0]) + ' departures - ' + str(nb_flights[1]) + ' arrivals')
+    return flights
