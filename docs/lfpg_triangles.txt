@@ -1,0 +1,298 @@
+Point NW -4300 2100 112.0
+Point N 250 2100 116.0
+Point NE 4800 2100 110.0
+Point SW -4300 -2300 98.0
+Point SE 4800 -2300 95.0
+Point S 250 -2300 90.0
+Point P1 -1761 1498 114.0
+Point P2 -1274 1498 115.0
+Point P3 983 1719 117.6
+Point P4 175 1618 116.5
+Point P5 -778 1526 116.5
+Point P6 -522 1354 116.5
+Point P7 190 1400 114.0
+Point P8 614 1426 117.0
+Point P9 1657 1469 112.0
+Point P10 1060 1438 116.2
+Point P11 -2577 1101 110.8
+Point P12 -1788 1203 113.0
+Point P13 -1288 1197 115.0
+Point P14 -3191 703 102.7
+Point P15 -2577 758 108.0
+Point P16 -2306 788 111.0
+Point P17 -1938 824 111.5
+Point P18 -1480 848 112.5
+Point P19 -1065 872 112.5
+Point P20 -770 900 115.0
+Point P21 -468 938 108.9
+Point P22 -28 962 115.0
+Point P23 349 999 112.5
+Point P24 699 1035 112.4
+Point P25 -3336 420 102.3
+Point P26 -3191 336 104.4
+Point P27 -848 523 108.6
+Point P28 -745 251 108.5
+Point P29 -64 330 106.8
+Point P30 -95 733 106.8
+Point P31 181 794 111.3
+Point P32 301 474 110.5
+Point P33 1175 1077 115.0
+Point P34 1548 1101 107.0
+Point P35 1844 1113 107.0
+Point P36 2193 1131 110.0
+Point P37 2344 962 107.7
+Point P38 2362 643 104.0
+Point P39 2133 565 107.5
+Point P40 66 812 112.4
+Point P41 271 697 112.5
+Point P42 108 408 109.5
+Point P43 313 330 109.0
+Point P44 313 -120 104.3
+Point P45 319 -307 102.8
+Point P46 488 -476 103.0
+Point P47 512 -1108 98.6
+Point P48 -137 -1060 97.0
+Point P49 -637 -1126 96.6
+Point P50 -824 -1289 91.0
+Point P51 -974 -1524 90.0
+Point P52 -974 -1940 89.0
+Point P53 -540 -1295 98.0
+Point P54 -4 -1253 98.6
+Point P55 422 -1548 102.0
+Point P56 886 -1223 103.4
+Point P57 934 -1494 103.5
+Point P58 1343 -1452 105.0
+Point P59 1325 -1253 107.7
+Point P60 1343 -1837 102.5
+Point P61 1880 -1614 103.4
+Point P62 1825 -1223 107.5
+Point P63 1904 -1030 106.5
+Point P64 1590 -921 106.2
+Point P65 1018 -970 105.8
+Point P66 699 -235 105.8
+Point P67 1199 -162 107.0
+Point P68 1639 -126 109.0
+Point P69 2054 -84 106.7
+Point P70 2392 -48 105.2
+Point P71 2404 251 104.8
+Point P72 2380 450 104.7
+Point P73 2735 -30 102.8
+Point P74 3386 29 103.4
+Point P75 807 -451 107.0
+Point P76 1235 -367 107.0
+Point P77 1554 -367 106.2
+Point P78 2036 -241 104.5
+Point P79 2452 -367 102.8
+Point P80 2838 -180 101.0
+Point P81 3296 -229 105.0
+Point P82 2621 -1729 100.5
+Point P83 3326 -1644 97.4
+Point P84 3970 -1584 95.8
+Point P85 3934 -1235 95.4
+Point P86 3988 -1054 97.8
+Point P87 4067 -723 100.0
+Point P88 3790 -735 101.5
+Point P89 3374 -771 102.0
+Point P90 2988 -819 100.0
+Point P91 3157 -1512 98.0
+Point P92 2765 -1337 102.0
+Point P93 2651 -952 103.7
+Point P94 3109 -1120 100.0
+Point P95 2579 -1132 101.5
+Point P96 3428 -1096 98.0
+Triangle P77 P76 P64
+Triangle P78 P69 P68
+Triangle P66 P44 P45
+Triangle P26 P14 P25
+Triangle P83 P82 SE
+Triangle P50 P28 P17
+Triangle P64 P59 P62
+Triangle P59 P56 P57
+Triangle P40 P31 P22
+Triangle P9 NE P3
+Triangle P78 P77 P63
+Triangle P6 P4 P5
+Triangle P57 P56 P55
+Triangle P68 P33 P67
+Triangle P77 P67 P76
+Triangle P95 P62 P61
+Triangle P53 P52 S
+Triangle P87 P86 SE
+Triangle P42 P30 P29
+Triangle P10 P9 P3
+Triangle P23 P7 P22
+Triangle P96 P91 P83
+Triangle P95 P61 P82
+Triangle P71 P39 P69
+Triangle P69 P39 P68
+Triangle P55 P47 P54
+Triangle P92 P82 P91
+Triangle P95 P63 P62
+Triangle P48 P45 P28
+Triangle P43 P32 P42
+Triangle P55 P54 S
+Triangle P14 P11 NW
+Triangle P88 P86 P87
+Triangle P16 P12 P11
+Triangle P39 P35 P34
+Triangle P77 P64 P63
+Triangle P68 P34 P33
+Triangle P67 P43 P66
+Triangle P90 P89 P81
+Triangle P65 P59 P64
+Triangle P40 P22 P30
+Triangle P82 P61 P60
+Triangle P45 P29 P28
+Triangle P8 P4 P7
+Triangle P8 P3 N
+Triangle P21 P6 P20
+Triangle P95 P82 P92
+Triangle P74 P72 P73
+Triangle P44 P43 P29
+Triangle P94 P89 P90
+Triangle P66 P45 P46
+Triangle P50 P49 P28
+Triangle P54 P48 P53
+Triangle P75 P47 P65
+Triangle P90 P80 P79
+Triangle P41 P31 P40
+Triangle P49 P48 P28
+Triangle P78 P68 P77
+Triangle P82 S SE
+Triangle P48 P46 P45
+Triangle P75 P66 P46
+Triangle P53 P50 P51
+Triangle P50 P17 P16
+Triangle P84 P83 SE
+Triangle P28 P18 P17
+Triangle P26 P15 P14
+Triangle P76 P75 P65
+Triangle P28 P27 P18
+Triangle P30 P22 P21
+Triangle P96 P94 P91
+Triangle P3 NE N
+Triangle P27 P21 P20
+Triangle P18 P13 P12
+Triangle P8 N P4
+Triangle P67 P33 P24
+Triangle P94 P93 P92
+Triangle P52 SW S
+Triangle P20 P5 P13
+Triangle P43 P24 P32
+Triangle P56 P47 P55
+Triangle P36 P9 P35
+Triangle P74 P38 P72
+Triangle P78 P70 P69
+Triangle P10 P3 P8
+Triangle P34 P9 P10
+Triangle P53 P51 P52
+Triangle P76 P67 P75
+Triangle P15 P11 P14
+Triangle P2 N P1
+Triangle P64 P62 P63
+Triangle P62 P59 P58
+Triangle P39 P38 P37
+Triangle P86 P84 SE
+Triangle P94 P92 P91
+Triangle P95 P93 P63
+Triangle P80 P74 P73
+Triangle P87 NE P74
+Triangle P41 P23 P31
+Triangle P61 P58 P60
+Triangle P60 P58 P57
+Triangle P26 P16 P15
+Triangle P82 P60 S
+Triangle P51 P16 P26
+Triangle P25 NW SW
+Triangle P13 P2 P1
+Triangle P35 P9 P34
+Triangle P27 P20 P19
+Triangle P5 N P2
+Triangle P19 P13 P18
+Triangle P79 P70 P78
+Triangle P43 P42 P29
+Triangle P79 P73 P70
+Triangle P65 P47 P56
+Triangle P20 P6 P5
+Triangle P59 P57 P58
+Triangle P95 P92 P93
+Triangle P65 P56 P59
+Triangle P37 NE P36
+Triangle P88 P87 P74
+Triangle P12 P1 P11
+Triangle P60 P57 S
+Triangle P66 P43 P44
+Triangle P79 P78 P63
+Triangle P52 P51 SW
+Triangle P54 P53 S
+Triangle P22 P7 P6
+Triangle P80 P73 P79
+Triangle P20 P13 P19
+Triangle P16 P11 P15
+Triangle P87 SE NE
+Triangle P75 P46 P47
+Triangle P54 P47 P48
+Triangle P30 P21 P27
+Triangle P30 P27 P28
+Triangle P73 P71 P70
+Triangle P76 P65 P64
+Triangle P74 NE P37
+Triangle P57 P55 S
+Triangle P41 P32 P24
+Triangle P68 P39 P34
+Triangle P53 P49 P50
+Triangle P93 P79 P63
+Triangle P96 P86 P88
+Triangle P24 P10 P8
+Triangle P90 P81 P80
+Triangle P89 P88 P81
+Triangle P17 P12 P16
+Triangle P24 P8 P23
+Triangle P22 P6 P21
+Triangle P26 P25 SW
+Triangle P42 P41 P40
+Triangle P71 P69 P70
+Triangle P42 P40 P30
+Triangle P67 P24 P43
+Triangle P62 P58 P61
+Triangle P91 P82 P83
+Triangle P77 P68 P67
+Triangle P18 P12 P17
+Triangle P39 P37 P36
+Triangle P96 P85 P86
+Triangle P81 P74 P80
+Triangle P31 P23 P22
+Triangle P41 P24 P23
+Triangle P30 P28 P29
+Triangle P1 N NW
+Triangle P7 P4 P6
+Triangle P11 P1 NW
+Triangle P93 P90 P79
+Triangle P33 P10 P24
+Triangle P27 P19 P18
+Triangle P36 NE P9
+Triangle P39 P36 P35
+Triangle P5 P4 N
+Triangle P53 P48 P49
+Triangle P96 P89 P94
+Triangle P73 P72 P71
+Triangle P75 P67 P66
+Triangle P34 P10 P33
+Triangle P72 P39 P71
+Triangle P23 P8 P7
+Triangle P51 P26 SW
+Triangle P88 P74 P81
+Triangle P86 P85 P84
+Triangle P25 P14 NW
+Triangle P96 P88 P89
+Triangle P85 P83 P84
+Triangle P74 P37 P38
+Triangle P45 P44 P29
+Triangle P51 P50 P16
+Triangle P48 P47 P46
+Triangle P13 P1 P12
+Triangle P96 P83 P85
+Triangle P42 P32 P41
+Triangle P72 P38 P39
+Triangle P13 P5 P2
+Triangle P94 P90 P93
