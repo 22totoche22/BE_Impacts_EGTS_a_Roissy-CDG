@@ -1,0 +1,29 @@
+Je vous transmets en PJ :
+- la description de l'aéroport et un jeu de trafic sur une journée
+- le fichiers des points avec altitudes sur Roissy : chaque point a un
+nom, puis x y z  (coordonnées en mètres dans le même système de
+coordonnées que la description de l'aéroport)
+- un exemple de triangulation de Delaunay sur ces points
+- les modèles d'accélération
+
+Et voici un petit rappel du travail demandé :
+
+1) Pouvoir calculer l'altitude en n'importe quel point de l'aéroport
+     - Algorithme de triangulation de Delaunay
+     - Calcul du plan d'un triangle (z = ax + by + c) et test
+d'appartenance d'un point à un triangle
+     Cela doit permettre de calculer les pentes sur chaque portion d'une
+trajectoire
+
+2) Implémenter le modèle d'accélération
+     Pour recalculer une trajectoire en fonction du modèle d'accélération
+     Puis mesurer et comparer les temps de roulage avec ou sans pente,
+avec ou sans EGTS
+
+3) Résolution des conflits, 1 avion après l'autre, par algorithme de
+backtrack
+   Pour mesurer les temps de roulage et les retards
+
+Cordialement,
+
+J-B.G.
