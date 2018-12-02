@@ -1,4 +1,6 @@
-  
+
+module Map = Lfpg_map
+
 let visu (marks,runways,taxiways)=
   Graphics.open_graph("");
   let (largeur, hauteur) = (1000,800) in
@@ -8,31 +10,34 @@ let visu (marks,runways,taxiways)=
   Graphics.set_line_width 0;
   
   List.iter (fun mark ->
-    match (Lfpg_map.point_xyz_mark mark) with
-      (x,y,z)::[] ->  Graphics.fill_circle ((x*largeur/largeur_max)+(largeur/2)) ((y*hauteur/hauteur_max)+(hauteur/2)) 2
-  |_ -> raise Lfpg_map.Empty )
+    match mark.Map.coordinates with
+      l::[] -> Graphics.fill_circle ((l.Map.x*largeur/largeur_max)+(largeur/2)) ((l.Map.y*hauteur/hauteur_max)+(hauteur/2)) 2
+    |_ -> raise Map.Empty)
     marks;
 
   List.iter (fun taxiway ->
-    match (Lfpg_map.point_xyz_taxiway taxiway) with
-      (x,y,z)::suite ->  begin
-	Graphics.moveto ((x*largeur/largeur_max)+(largeur/2)) ((y*hauteur/hauteur_max)+(hauteur/2));
-	List.iter (fun (a,b,c) -> Graphics.lineto ((a*largeur/largeur_max)+(largeur/2)) ((b*hauteur/hauteur_max)+(hauteur/2))) suite end
-  |_ -> raise Lfpg_map.Empty )
+    match taxiway.Map.taxiway_points with
+      debut::suite ->  begin
+	Graphics.moveto ((debut.Map.x*largeur/largeur_max)+(largeur/2)) ((debut.Map.y*hauteur/hauteur_max)+(hauteur/2));
+	List.iter (fun pt -> Graphics.lineto ((pt.Map.x*largeur/largeur_max)+(largeur/2)) ((pt.Map.y*hauteur/hauteur_max)+(hauteur/2))) suite end
+  |_ -> raise Map.Empty )
     taxiways;
+
+  
   Graphics.set_line_width 5;
+  
   List.iter (fun runway ->
-    match (Lfpg_map.point_xyz_runway runway) with
-      (x,y,z)::suite ->  begin
-	Graphics.moveto ((x*largeur/largeur_max)+(largeur/2)) ((y*hauteur/hauteur_max)+(hauteur/2));
-	List.iter (fun (a,b,c) -> Graphics.lineto ((a*largeur/largeur_max)+(largeur/2)) ((b*hauteur/hauteur_max)+(hauteur/2))) suite end
-  |_ -> raise Lfpg_map.Empty )
-    runways;
+    match (runway.Map.runway_points) with
+      debut::suite ->  begin
+	Graphics.moveto ((debut.Map.x*largeur/largeur_max)+(largeur/2)) ((debut.Map.y*hauteur/hauteur_max)+(hauteur/2));
+	List.iter (fun pt -> Graphics.lineto ((pt.Map.x*largeur/largeur_max)+(largeur/2)) ((pt.Map.y*hauteur/hauteur_max)+(hauteur/2))) suite end
+  |_ -> raise Map.Empty )
+   runways; 
   let rec loop() = loop() in
      loop();; 
 
 let ()=
-  visu (Lfpg_map.marks,Lfpg_map.runways,Lfpg_map.taxiways);;
+  visu (Map.marks,Map.runways,Map.taxiways);;
 
 
   

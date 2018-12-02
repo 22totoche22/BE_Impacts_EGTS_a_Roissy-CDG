@@ -1,6 +1,8 @@
 
 
-type point = int*int*float
+type point = {x : int;
+	      y : int;
+	      z : float}
 
 type mark = {mark_id: string;
 	     tipe: int;
@@ -35,7 +37,7 @@ exception Empty
 let stringtotuple s =
   let l =  Str.split (Str.regexp "[,]") s in
   match l with
-    [h;t] -> ((int_of_string h),(int_of_string t),0.)
+    [h;t] -> {x = int_of_string h; y = int_of_string t; z = 0.}
   |_ ->raise Empty;;
 
 
@@ -94,7 +96,7 @@ let read_file_altitude nom_fichier_altitude =
 	tipe::id::x::y::z::[] ->
 	  let new_points = {mark_id = id;
 			    tipe  = 0;
-			    coordinates = ((int_of_string x),(int_of_string y),(float_of_string z))::[]}::points in
+			    coordinates = {x = int_of_string x; y = int_of_string y; z = float_of_string z}::[]}::points in
 	  read_file_rec new_points;
       |_ -> raise Empty
     with End_of_file -> begin close_in file; points end in
@@ -124,6 +126,12 @@ let read_file_flights nom_fichier_flights =
 
 let point_xyz_mark mark = 
   mark.coordinates;;
+
+let point_xyz_points points =
+  List.map (fun i ->
+    match i.coordinates with
+      l::[] -> l
+    |_ -> raise Empty) points;;
 
 let point_xyz_taxiway taxiway =
   taxiway.taxiway_points;;
