@@ -1,6 +1,7 @@
 module Map = Lfpg_map
 
-type triangle ={p1: Map.point; p2: Map.point; p3: Map.point};;
+type triangle ={p1: Map.point; p2: Map.point; p3: Map.point; mutable equa : float*float*float*float};;
+
 
 let cercle_circonscrit = fun triangle ->
   let x1 = triangle.p1.Map.x in
@@ -110,7 +111,7 @@ let delaunay = fun pointlist ->
   let superPoint1 = {Map.x=0;y=0;z=0.} in
   let superPoint2 = {Map.x=20000;y=0;z=0.} in
   let superPoint3 = {Map.x=0;y=20000;z=0.} in
-  let supertri = {p1 = superPoint1 ; p2 = superPoint2 ; p3 = superPoint3 } in
+  let supertri = {p1 = superPoint1 ; p2 = superPoint2 ; p3 = superPoint3; equa = (0.,0.,0.,0.) } in
   let trianglelist = ref (supertri::[]) in
   let badTriangle = ref [] in
   let polygon = ref [] in
@@ -143,7 +144,7 @@ let delaunay = fun pointlist ->
               []->()
             |edge::reste->
               let point1,point2 = edge in
-              let newTri = {p1=point1;p2=point2;p3=point} in
+              let newTri = {p1=point1;p2=point2;p3=point;equa = (0.,0.,0.,0.)} in
               trianglelist := newTri::(!trianglelist);
 	      loopedgechangement reste
         in loopedgechangement (!polygon);
