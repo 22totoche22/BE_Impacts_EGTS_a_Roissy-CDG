@@ -55,9 +55,10 @@ let dans_cercle = fun triangle sommet ->
   let xC = centre.x in
   let yC = centre.y in
   let distance = sqrt ( (float (xC - x))**2. +. (float (yC - y))**2.) in
+  let () = Printf.printf "distance : %f\n" distance in
   distance < rayon;;
 
-let edge = fun point1 point2 list polygon ->
+let edge = fun point1 point2 triangle list polygon ->
   let compt = ref 0 in
   (* condition = vrai alors il n'y a pas d'arete partagee *)
   let condition = ref true in
@@ -65,7 +66,7 @@ let edge = fun point1 point2 list polygon ->
     compt := 0;
     match listt with
 	[] -> ()
-      |tri::queue ->
+      |tri::queue -> compt := 0;
 	begin
           match point1 with
             | a when a = tri.p1 ->  compt := (!compt) + 1;
@@ -80,20 +81,13 @@ let edge = fun point1 point2 list polygon ->
             | c when c = tri.p3 ->  compt := (!compt) + 1;
 	    | inutile -> compt := (!compt); 
         end;
-	Printf.printf "compteur %d\n" (!compt);
-	if (!compt) = 2
+	if ((!compt) = 2 && (tri != triangle))
 	then
 	  condition := false;
 	loop queue;
   in loop list;
   if (!condition)
-  then
-    begin
-      polygon := (point1,point2)::(!polygon);
-      Printf.printf "edge ajout p1 %d %d p2 %d %d\n" point1.x point1.y point2.x point2.y;
-    end
-  else
-    Printf.printf "pas de cote partage\n";
+  then polygon := (point1,point2)::(!polygon);
   (!polygon);;
 
 let removetrian = fun tria listtriangle ->
@@ -102,33 +96,34 @@ let removetrian = fun tria listtriangle ->
     match list with
 	[] -> ()
       |triangle::queue ->
-	if triangle = tri
-	then listefin := (List.append (!listefin) queue)
+	if (triangle = tria)
+	then
+	  ()
 	else listefin := triangle::(!listefin);
 	removetri tri queue
   in removetri tria listtriangle;
   (!listefin);;
 
-let removePointCommunSuperTri = fun triangle supertri trianglelist listt ->
+let removePointCommunSuperTri = fun triangle supertri trianglelist ->
   begin
     match triangle.p1 with
-      | a when a = supertri.p1 -> trianglelist := removetrian triangle listt
-      | a when a = supertri.p2 -> trianglelist := removetrian triangle listt
-      | a when a = supertri.p3 -> trianglelist := removetrian triangle listt
+      | a when a = supertri.p1 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p2 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p3 -> trianglelist := removetrian triangle (!trianglelist)
       | inutile -> trianglelist := (!trianglelist)
   end;
   begin
     match triangle.p2 with
-      | a when a = supertri.p1 -> trianglelist := removetrian triangle listt
-      | a when a = supertri.p2 -> trianglelist := removetrian triangle listt
-      | a when a = supertri.p3 -> trianglelist := removetrian triangle listt
+      | a when a = supertri.p1 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p2 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p3 -> trianglelist := removetrian triangle (!trianglelist)
       | inutile -> trianglelist := (!trianglelist)
   end;
   begin
     match triangle.p3 with
-      | a when a = supertri.p1 -> trianglelist := removetrian triangle listt
-      | a when a = supertri.p2 -> trianglelist := removetrian triangle listt
-      | a when a = supertri.p3 -> trianglelist := removetrian triangle listt
+      | a when a = supertri.p1 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p2 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p3 -> trianglelist := removetrian triangle (!trianglelist)
       | inutile -> trianglelist := (!trianglelist)
   end;;
   
@@ -147,19 +142,13 @@ let delaunay = fun pointlist ->
     match listp with
 	[] -> ()
       | point::queue ->
-	let () = Printf.printf "\nPoint : %d %d\n" point.x point.y in
         let rec loopAjoutbadtriangle = fun listt ->
           match listt with
               [] -> ()
             | triangle::reste ->
               if dans_cercle triangle point
               then
-		begin
-		  Printf.printf "mauvais triangle %d %d %d %d %d %d\n" triangle.p1.x triangle.p1.y triangle.p2.x triangle.p2.y triangle.p3.x triangle.p3.y;
-		  badTriangle := triangle::(!badTriangle);
-		end
-	      else
-		Printf.printf "false pas un mauvais triangle\n";
+		badTriangle := triangle::(!badTriangle);
 	      loopAjoutbadtriangle reste
         in loopAjoutbadtriangle (!trianglelist);
         polygon := [];
@@ -167,10 +156,9 @@ let delaunay = fun pointlist ->
           match listmt with
               [] -> ()
             | triangle::reste ->
-	      Printf.printf "Mauvais triangle boucle correc %d %d %d %d %d %d\n" triangle.p1.x triangle.p1.y triangle.p2.x triangle.p2.y triangle.p3.x triangle.p3.y;
-	      polygon := edge triangle.p1 triangle.p2 listmt polygon;
-              polygon := edge triangle.p2 triangle.p3 listmt polygon;
-              polygon := edge triangle.p1 triangle.p3 listmt polygon;
+	      polygon := edge triangle.p1 triangle.p2 triangle (!badTriangle) polygon;
+              polygon := edge triangle.p2 triangle.p3 triangle (!badTriangle) polygon;
+              polygon := edge triangle.p1 triangle.p3 triangle (!badTriangle) polygon;
               trianglelist := removetrian triangle (!trianglelist);
               loopCorrectionTriangle reste;
         in loopCorrectionTriangle (!badTriangle);
@@ -185,14 +173,14 @@ let delaunay = fun pointlist ->
         in loopedgechangement (!polygon);
 	bouclePourChaquePoint queue;
   in bouclePourChaquePoint pointlist;
- (* let rec retirerSuperTriangle = fun listt ->
+  let rec retirerSuperTriangle = fun listt ->
     match listt with
       [] -> ()
       | triangle::queue ->
-	removePointCommunSuperTri triangle supertri1 trianglelist listt;
-	removePointCommunSuperTri triangle supertri2 trianglelist listt;
+	removePointCommunSuperTri triangle supertri1 trianglelist;
+	removePointCommunSuperTri triangle supertri2 trianglelist;
         retirerSuperTriangle queue; 
-  in retirerSuperTriangle (!trianglelist);*)
+  in retirerSuperTriangle (!trianglelist);
   (!trianglelist);;
 
 
@@ -205,9 +193,12 @@ let () =
   let point5 = {x=15;y=5;z=0.} in
   let point6 = {x=3;y=3;z=0.} in
   let listeDesPoints = point1::point2::point3::point4::point5::point6::[] in
-  let () = Printf.printf "longueur point %d \n" (List.length listeDesPoints) in
   let listeTriangle = delaunay listeDesPoints in
   let () = Printf.printf "longueur triangle %d \n" (List.length listeTriangle) in
-  match listeTriangle with
-      [] -> Printf.printf "erreur"
-    | t1::rest -> Printf.printf "t1 = %d %d %d %d %d %d\n" (t1.p1.x) (t1.p1.y) t1.p2.x t1.p2.y t1.p3.x t1.p3.y ;;
+  let rec affi = fun listeTriangle ->
+    match listeTriangle with
+	[] -> Printf.printf "erreur"
+      | t1::rest -> Printf.printf "t1 = %d %d %d %d %d %d\n" t1.p1.x t1.p1.y t1.p2.x t1.p2.y t1.p3.x t1.p3.y;
+	affi rest
+  in affi listeTriangle
+;;
