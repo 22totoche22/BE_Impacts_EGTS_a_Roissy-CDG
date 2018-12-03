@@ -1,7 +1,6 @@
 module Map = Lfpg_map
 
-type triangle ={p1: Map.point; p2: Map.point; p3: Map.point; mutable equa : float*float*float*float};;
-
+type triangle ={p1: Map.point; p2: Map.point; p3: Map.point; mutable equa: float*float*float*float};;
 
 let cercle_circonscrit = fun triangle ->
   let x1 = triangle.p1.Map.x in
@@ -10,56 +9,42 @@ let cercle_circonscrit = fun triangle ->
   let y2 = triangle.p2.Map.y in
   let x3 = triangle.p3.Map.x in
   let y3 = triangle.p3.Map.y in
-  if (y2 - y1) = 0
-  then
-    let ap1p2 = float (-(x2 - x1)) in
-    let bp1p2 = float y1 in
+  let ap1p2 = ref 0. in
+  let ap2p3 = ref 0. in
+  let bp1p2 = ref 0. in
+  let bp2p3 = ref 0. in
+  let xC = ref 0. in
+  let yC = ref 0. in
+  let rayon = ref 0. in
+  let pcentre = ref ({x = 0; y = 0; z = 0.}) in
+  begin
+    (* cas général *)
+    ap1p2 := (float (-(x2 - x1))) /. (float (y2 - y1));
+    bp1p2 := (float (x2 * x2 - x1 * x1 + y2 * y2 - y1 * y1)) /. (float (2 * (y2 - y1)));
+    ap2p3 := (float (-(x3 - x2))) /. (float (y3 - y2));
+    bp2p3 := (float (x3 * x3 - x2 * x2 + y3 * y3 - y2 * y2)) /. (float (2 * (y3 - y2)));
+    (* cas particulier *)
+    if (y2 - y1) = 0
+    then
+      begin
+	ap1p2 := (float (-(x2 - x1)));
+	bp1p2 := (float y1);
+      end;
     if (y3 - y2) = 0
     then
-      let ap2p3 = float (-(x3-x2)) in
-      let bp2p3 = float y2 in
-      let xC = (bp1p2 -. bp2p3) /. (ap2p3 -. ap1p2) in
-      let yC = (ap1p2 *. xC +. bp1p2) in
-      let xc = int_of_float xC in
-      let yc = int_of_float yC in
-      let rayon = sqrt ((xC -. (float x1))*.(xC -. (float x1)) +. (yC -. (float y1))*.(yC -. (float y1))) in
-      let pcentre = {Map.x = xc; Map.y = yc; Map.z = 0.} in
-      pcentre, rayon
-    else
-      let ap2p3 = (float (-(x3 - x2))) /. (float (y3 - y2)) in
-      let bp2p3 = (float (x3 * x3 - x2 * x2 + y3 * y3 - y2 * y2)) /. (float (2 * (y3 - y2))) in
-      let xC = (bp1p2 -. bp2p3) /. (ap2p3 -. ap1p2) in
-      let yC =  (ap1p2 *. xC +. bp1p2) in
-      let xc = int_of_float xC in
-      let yc = int_of_float yC in
-      let rayon = sqrt ((xC -. (float x1))*.(xC -. (float x1)) +. (yC -. (float y1))*.(yC -. (float y1))) in
-      let pcentre = {Map.x = xc; Map.y = yc; Map.z = 0.} in
-      pcentre, rayon
-  else
-    let ap1p2 = (float (-(x2 - x1))) /. (float (y2 - y1)) in
-    let bp1p2 = (float (x2 * x2 - x1 * x1 + y2 * y2 - y1 * y1)) /. (float (2 * (y2 - y1))) in
-    if (y3 - y2) = 0
+      begin
+	ap2p3 := (float (-(x3 - x2)));
+	bp2p3 := (float y2);
+      end;
+    xC := (!bp1p2 -. !bp2p3) /. (!ap2p3 -. !ap1p2);
+    yC := (!ap1p2 *. !xC +. !bp1p2);
+    rayon := sqrt ((!xC -. (float x1))*.(!xC -. (float x1)) +. (!yC -. (float y1))*.(!yC -. (float y1)));
+    pcentre := {Map.x = (int_of_float !xC); Map.y = (int_of_float !yC);Map.z = 0.};
+    if !pcentre = triangle.p1
     then
-      let ap2p3 = float (-(x3-x2)) in
-      let bp2p3 = float y2 in
-      let xC = (bp1p2 -. bp2p3) /. (ap2p3 -. ap1p2) in
-      let yC =  (ap1p2 *. xC +. bp1p2) in
-      let xc = int_of_float xC in
-      let yc = int_of_float yC in
-      let rayon = sqrt ((xC -. (float x1))*.(xC -. (float x1)) +. (yC -. (float y1))*.(yC -. (float y1))) in
-      let pcentre = {Map.x = xc; Map.y = yc; Map.z = 0.} in
-      pcentre, rayon
-    else
-      let ap2p3 = (float (-( x3 - x2))) /. (float (y3 - y2)) in
-      let bp2p3 = (float (x3 * x3 - x2 * x2 + y3 * y3 - y2 * y2)) /. (float (2 * (y3 - y2))) in
-      let xC = (bp1p2 -. bp2p3) /. (ap2p3 -. ap1p2) in
-      let yC =  (ap1p2 *. xC +. bp1p2) in
-      let xc = int_of_float xC in
-      let yc = int_of_float yC in
-      let rayon = sqrt ((xC -. (float x1)) *. (xC -. (float x1)) +. (yC -. (float y1)) *. (yC -. (float y1))) in
-      let pcentre = {Map.x = xc; Map.y = yc; Map.z = 0.} in
-      pcentre, rayon;;
-
+      rayon := sqrt ((!xC -. (float x2))*.(!xC -. (float x2)) +. (!yC -. (float y2))*.(!yC -. (float y2)));
+  end;
+  (!pcentre), (!rayon) ;;
 
 let dans_cercle = fun triangle sommet ->
   let centre,rayon = cercle_circonscrit triangle in
@@ -70,28 +55,36 @@ let dans_cercle = fun triangle sommet ->
   let distance = sqrt ( (float (xC - x))**2. +. (float (yC - y))**2.) in
   distance < rayon;;
 
-let edge= fun point1 point2 list polygon ->
+let edge = fun point1 point2 triangle list polygon ->
+  let compt = ref 0 in
+  (* condition = vrai alors il n'y a pas d'arete partagee *)
+  let condition = ref true in
   let rec loop = fun listt ->
+    compt := 0;
     match listt with
 	[] -> ()
-      |tri::queue ->
-	let compt = ref 0 in
+      |tri::queue -> compt := 0;
 	begin
           match point1 with
             | a when a = tri.p1 ->  compt := (!compt) + 1;
             | b when b = tri.p2 ->  compt := (!compt) + 1;
             | c when c = tri.p3 ->  compt := (!compt) + 1;
+	    | inutile -> compt := (!compt);
         end;
         begin
           match point2 with
             | a when a = tri.p1 ->  compt := (!compt) + 1;
             | b when b = tri.p2 ->  compt := (!compt) + 1;
             | c when c = tri.p3 ->  compt := (!compt) + 1;
+	    | inutile -> compt := (!compt); 
         end;
-        if (!compt) != 2
-	then polygon := (point1,point2)::(!polygon);
-	loop queue
+	if ((!compt) = 2 && (tri != triangle))
+	then
+	  condition := false;
+	loop queue;
   in loop list;
+  if (!condition)
+  then polygon := (point1,point2)::(!polygon);
   (!polygon);;
 
 let removetrian = fun tria listtriangle ->
@@ -100,19 +93,45 @@ let removetrian = fun tria listtriangle ->
     match list with
 	[] -> ()
       |triangle::queue ->
-	if triangle = tri
-	then listefin := (List.append (!listefin) queue)
+	if (triangle = tria)
+	then
+	  ()
 	else listefin := triangle::(!listefin);
 	removetri tri queue
   in removetri tria listtriangle;
   (!listefin);;
 
+let removePointCommunSuperTri = fun triangle supertri trianglelist ->
+  begin
+    match triangle.p1 with
+      | a when a = supertri.p1 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p2 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p3 -> trianglelist := removetrian triangle (!trianglelist)
+      | inutile -> trianglelist := (!trianglelist)
+  end;
+  begin
+    match triangle.p2 with
+      | a when a = supertri.p1 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p2 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p3 -> trianglelist := removetrian triangle (!trianglelist)
+      | inutile -> trianglelist := (!trianglelist)
+  end;
+  begin
+    match triangle.p3 with
+      | a when a = supertri.p1 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p2 -> trianglelist := removetrian triangle (!trianglelist)
+      | a when a = supertri.p3 -> trianglelist := removetrian triangle (!trianglelist)
+      | inutile -> trianglelist := (!trianglelist)
+  end;;
+  
 let delaunay = fun pointlist ->
-  let superPoint1 = {Map.x=0;y=0;z=0.} in
-  let superPoint2 = {Map.x=20000;y=0;z=0.} in
-  let superPoint3 = {Map.x=0;y=20000;z=0.} in
-  let supertri = {p1 = superPoint1 ; p2 = superPoint2 ; p3 = superPoint3; equa = (0.,0.,0.,0.) } in
-  let trianglelist = ref (supertri::[]) in
+  let superPoint1 = {Map.x=0;Map.y=0;Map.z=0.} in
+  let superPoint2 = {Map.x=20000;Map.y=0;Map.z=0.} in
+  let superPoint3 = {Map.x=0;Map.y=20000;Map.z=0.} in
+  let superPoint4 = {Map.x=20000;Map.y=20000;Map.z=0.} in
+  let supertri1 = {p1 = superPoint1 ; p2 = superPoint2 ; p3 = superPoint3 ;equa=(0.,0.,0.,0.) } in
+  let supertri2 = {p1 = superPoint4 ; p2 = superPoint2 ; p3 = superPoint3;equa=(0.,0.,0.,0.) } in
+  let trianglelist = ref (supertri1::supertri2::[]) in
   let badTriangle = ref [] in
   let polygon = ref [] in
   let rec bouclePourChaquePoint = fun listp ->
@@ -125,17 +144,18 @@ let delaunay = fun pointlist ->
               [] -> ()
             | triangle::reste ->
               if dans_cercle triangle point
-              then badTriangle := triangle::(!badTriangle);
-              loopAjoutbadtriangle reste
+              then
+		badTriangle := triangle::(!badTriangle);
+	      loopAjoutbadtriangle reste
         in loopAjoutbadtriangle (!trianglelist);
         polygon := [];
         let rec loopCorrectionTriangle = fun listmt ->
           match listmt with
               [] -> ()
             | triangle::reste ->
-	      polygon := edge triangle.p1 triangle.p2 reste polygon;
-              polygon := edge triangle.p2 triangle.p3 reste polygon;
-              polygon := edge triangle.p1 triangle.p3 reste polygon;
+	      polygon := edge triangle.p1 triangle.p2 triangle (!badTriangle) polygon;
+              polygon := edge triangle.p2 triangle.p3 triangle (!badTriangle) polygon;
+              polygon := edge triangle.p1 triangle.p3 triangle (!badTriangle) polygon;
               trianglelist := removetrian triangle (!trianglelist);
               loopCorrectionTriangle reste;
         in loopCorrectionTriangle (!badTriangle);
@@ -144,38 +164,42 @@ let delaunay = fun pointlist ->
               []->()
             |edge::reste->
               let point1,point2 = edge in
-              let newTri = {p1=point1;p2=point2;p3=point;equa = (0.,0.,0.,0.)} in
+              let newTri = {p1=point1;p2=point2;p3=point;equa=(0.,0.,0.,0.)} in
               trianglelist := newTri::(!trianglelist);
 	      loopedgechangement reste
         in loopedgechangement (!polygon);
+	bouclePourChaquePoint queue;
   in bouclePourChaquePoint pointlist;
   let rec retirerSuperTriangle = fun listt ->
     match listt with
       [] -> ()
       | triangle::queue ->
-        begin
-          match triangle.p1 with
-            | a when a = supertri.p1 -> trianglelist := removetrian triangle listt
-            | a when a = supertri.p2 -> trianglelist := removetrian triangle listt
-            | a when a = supertri.p3 -> trianglelist := removetrian triangle listt
-        end;
-        begin
-          match triangle.p2 with
-            | a when a = supertri.p1 -> trianglelist := removetrian triangle listt
-            | a when a = supertri.p2 -> trianglelist := removetrian triangle listt
-            | a when a = supertri.p3 -> trianglelist := removetrian triangle listt
-        end;
-        begin
-          match triangle.p3 with
-            | a when a = supertri.p1 -> trianglelist := removetrian triangle listt
-            | a when a = supertri.p2 -> trianglelist := removetrian triangle listt
-            | a when a = supertri.p3 -> trianglelist := removetrian triangle listt
-        end;
-        retirerSuperTriangle queue;
+	removePointCommunSuperTri triangle supertri1 trianglelist;
+	removePointCommunSuperTri triangle supertri2 trianglelist;
+        retirerSuperTriangle queue; 
   in retirerSuperTriangle (!trianglelist);
   (!trianglelist);;
 
 
+(*
+let () =
+  let point1 = {x=2;y=5;z=0.} in
+  let point2 = {x=10;y=15;z=0.} in
+  let point3 = {x=30;y=50;z=0.} in
+  let point4 = {x=20;y=10;z=0.} in
+  let point5 = {x=15;y=5;z=0.} in
+  let point6 = {x=3;y=3;z=0.} in
+  let listeDesPoints = point1::point2::point3::point4::point5::point6::[] in
+  let listeTriangle = delaunay listeDesPoints in
+  let () = Printf.printf "longueur triangle %d \n" (List.length listeTriangle) in
+  let rec affi = fun listeTriangle ->
+    match listeTriangle with
+	[] -> Printf.printf "erreur"
+      | t1::rest -> Printf.printf "t1 = %d %d %d %d %d %d\n" t1.p1.x t1.p1.y t1.p2.x t1.p2.y t1.p3.x t1.p3.y;
+	affi rest
+  in affi listeTriangle
+;;
+*)
 
 let () =
   let listeDesPoints = Map.point_xyz_points Map.points_alti in
