@@ -1,7 +1,8 @@
 
 module Map = Lfpg_map
+module Del = Delaunay
 
-let visu (marks,runways,taxiways)=
+let visu (marks,runways,taxiways,listetriangle)=
   Graphics.open_graph("");
   let (largeur, hauteur) = (1000,800) in
   Graphics.resize_window largeur hauteur;
@@ -20,11 +21,11 @@ let visu (marks,runways,taxiways)=
       debut::suite ->  begin
 	Graphics.moveto ((debut.Map.x*largeur/largeur_max)+(largeur/2)) ((debut.Map.y*hauteur/hauteur_max)+(hauteur/2));
 	List.iter (fun pt -> Graphics.lineto ((pt.Map.x*largeur/largeur_max)+(largeur/2)) ((pt.Map.y*hauteur/hauteur_max)+(hauteur/2))) suite end
-  |_ -> raise Map.Empty )
+    |_ -> raise Map.Empty )
     taxiways;
 
-  
   Graphics.set_line_width 5;
+
   
   List.iter (fun runway ->
     match (runway.Map.runway_points) with
@@ -32,12 +33,22 @@ let visu (marks,runways,taxiways)=
 	Graphics.moveto ((debut.Map.x*largeur/largeur_max)+(largeur/2)) ((debut.Map.y*hauteur/hauteur_max)+(hauteur/2));
 	List.iter (fun pt -> Graphics.lineto ((pt.Map.x*largeur/largeur_max)+(largeur/2)) ((pt.Map.y*hauteur/hauteur_max)+(hauteur/2))) suite end
   |_ -> raise Map.Empty )
-   runways; 
+    runways;
+  
+  Graphics.set_line_width 0;
+  Graphics.set_color 0xFF00FF;
+  
+  List.iter (fun triangle ->
+    Graphics.moveto ((triangle.Del.p1.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p1.Map.y*hauteur/hauteur_max)+(hauteur/2));
+    Graphics.lineto ((triangle.Del.p2.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p2.Map.y*hauteur/hauteur_max)+(hauteur/2));
+    Graphics.lineto ((triangle.Del.p3.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p3.Map.y*hauteur/hauteur_max)+(hauteur/2));
+    Graphics.lineto ((triangle.Del.p1.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p1.Map.y*hauteur/hauteur_max)+(hauteur/2));
+  ) listetriangle;
   let rec loop() = loop() in
      loop();; 
 
 let ()=
-  visu (Map.marks,Map.runways,Map.taxiways);;
+  visu (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle);;
 
 
   

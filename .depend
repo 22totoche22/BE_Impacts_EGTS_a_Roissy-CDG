@@ -8,5 +8,5 @@ pivot.cmo : solve.cmo lfpg_map.cmo delaunay.cmo
 pivot.cmx : solve.cmx lfpg_map.cmx delaunay.cmx
 solve.cmo :
 solve.cmx :
-visu.cmo : lfpg_map.cmo
-visu.cmx : lfpg_map.cmx
+visu.cmo : lfpg_map.cmo delaunay.cmo
+visu.cmx : lfpg_map.cmx delaunay.cmx

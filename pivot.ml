@@ -1,8 +1,9 @@
 module Del = Delaunay
 module Map = Lfpg_map
+  
 type matrice = float array array
 
-
+(*
 let triangle1 = {Del.p1 = {Map.x = 1; Map.y=0 ; Map.z=0. };
 		 Del.p2 = {Map.x = 0; Map.y= 1; Map.z= 0.};
 		 Del.p3 = {Map.x = 0; Map.y=0 ; Map.z=1. };
@@ -14,7 +15,7 @@ let triangle2 = {Del.p1 = {Map.x =5 ; Map.y=8 ; Map.z=2. };
 		 Del.equa = (0.,0.,0.,0.);
 		} ;;
 let trianglelist = triangle1::triangle2::[];;
-
+*)
  
 let triangle_to_matrix triangle =
   [|
@@ -40,15 +41,21 @@ let print_triangle triangle =
   begin
     print_string " point1 : ";
     print_int triangle.Del.p1.Map.x;
+    print_string ",";
     print_int triangle.Del.p1.Map.y;
+    print_string ",";
     print_float triangle.Del.p1.Map.z;
     print_string " point2 : ";
     print_int triangle.Del.p2.Map.x;
+    print_string ",";
     print_int triangle.Del.p2.Map.y;
+    print_string ",";
     print_float triangle.Del.p2.Map.z;
     print_string " point3 : ";
     print_int triangle.Del.p3.Map.x;
+    print_string ",";
     print_int triangle.Del.p3.Map.y;
+    print_string ",";
     print_float triangle.Del.p3.Map.z;
     print_string "\n equation ";
     let (a,b,c,d) = triangle.Del.equa in
@@ -58,7 +65,7 @@ let print_triangle triangle =
   end;;
 
 let ()=
-  trianglelistwithequa trianglelist;
-    List.iter (fun i -> print_triangle i ) trianglelist;;
+  trianglelistwithequa Del.listeTriangle;
+    List.iter (fun i -> print_triangle i ) Del.listeTriangle;;
 
     

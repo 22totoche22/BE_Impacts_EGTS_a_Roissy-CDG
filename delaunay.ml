@@ -16,7 +16,7 @@ let cercle_circonscrit = fun triangle ->
   let xC = ref 0. in
   let yC = ref 0. in
   let rayon = ref 0. in
-  let pcentre = ref ({x = 0; y = 0; z = 0.}) in
+  let pcentre = ref ({Map.x = 0; Map.y = 0; Map.z = 0.}) in
   begin
     (* cas général *)
     ap1p2 := (float (-(x2 - x1))) /. (float (y2 - y1));
@@ -201,7 +201,6 @@ let () =
 ;;
 *)
 
-let () =
-  let listeDesPoints = Map.point_xyz_points Map.points_alti in
-  let listeTriangle = delaunay listeDesPoints in
-  ();;
+let listeDesPoints = Map.point_xyz_points Map.points_alti;;
+let listeTriangle = delaunay listeDesPoints;;
+  
