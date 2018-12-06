@@ -18,22 +18,32 @@ let trianglelist = triangle1::triangle2::[];;
 *)
  
 let triangle_to_matrix triangle =
-  [|
-    [|float triangle.Del.p1.Map.x; float triangle.Del.p1.Map.y;triangle.Del.p1.Map.z|];
-      [|float triangle.Del.p2.Map.x;float triangle.Del.p2.Map.y;triangle.Del.p2.Map.z|];
-      [|float triangle.Del.p3.Map.x;float triangle.Del.p3.Map.y;triangle.Del.p3.Map.z|]
-  |];;
-
+  let a1 = float triangle.Del.p1.Map.x in
+  let b1 = float triangle.Del.p1.Map.y in
+  let c1 = triangle.Del.p1.Map.z in
+  let a2 = float triangle.Del.p2.Map.x in
+  let b2 = float triangle.Del.p2.Map.y in
+  let c2 = triangle.Del.p2.Map.z in
+  let a3 = float triangle.Del.p3.Map.x in
+  let b3 = float triangle.Del.p3.Map.y in
+  let c3 = triangle.Del.p3.Map.z in
+  let matrice_A = [|
+    [|a1 ; b1 ;1.|];
+      [|a2; b2; 1.|];
+      [|a3; b3; 1.|]
+		  |] in
+  let vecteur_B = [|c1;c2;c3|] in
+  (matrice_A,vecteur_B);;
 
 let trianglelistwithequa triangle_list =
   
   List.iter (fun i ->
-    let matrice = triangle_to_matrix i in
-    let sol = Solve.solve matrice [|1.;1.;1.|] in
+    let (matrice,vecteur) = triangle_to_matrix i in
+    let sol = Solve.solve matrice vecteur in
     let solu_a= sol.(0) in
     let solu_b = sol.(1) in
     let solu_c = sol.(2) in
-    let solu = (solu_a, solu_b,solu_c,-.1.) in 
+    let solu = (solu_a, solu_b,solu_c) in 
     i.Del.equa <- solu
   ) triangle_list;;
 
@@ -58,9 +68,12 @@ let print_triangle triangle =
     print_string ",";
     print_float triangle.Del.p3.Map.z;
     print_string "\n equation ";
-    let (a,b,c,d) = triangle.Del.equa in
-    print_float a; print_string "x +" ; print_float b; print_string "y+" ;print_float c;print_string "z +";print_float d;
-    print_string " autre\n "
+    let (a,b,c) = triangle.Del.equa in
+    print_string "z = ";print_float a; print_string "x +" ; print_float b; print_string "y+" ;print_float c;
+    let valu = a *. (float triangle.Del.p1.Map.x) +. b *. (float triangle.Del.p1.Map.y) +. c in
+    print_string "\n";
+    print_float valu;
+    print_string "\n"
     
   end;;
 
