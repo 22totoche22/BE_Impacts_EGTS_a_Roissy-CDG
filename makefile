@@ -1,4 +1,4 @@
-SOURCES = lfpg_map.ml  delaunay.ml visu.ml 
+SOURCES = lfpg_map.ml  delaunay.ml visu.ml
 EXEC = prog
 CAMLC = ocamlc
 CAMLOPT = ocamlopt
