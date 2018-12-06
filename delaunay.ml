@@ -2,6 +2,28 @@ module Map = Lfpg_map
 
 type triangle ={p1: Map.point; p2: Map.point; p3: Map.point; mutable equa: float*float*float*float};;
 
+let minimum = fun x1 x2 x3 y1 y2 y3->
+  if (x1 <= x2 && x1 <= x3)
+  then
+    x1,y1
+  else
+    if (x2 <= x1 && x2 <= x1)
+    then
+      x2,y2
+    else
+      x3,y3;;
+
+let maximum = fun x1 x2 x3 y1 y2 y3->
+  if (x1 >= x2 && x1 >= x3)
+  then
+    x1,y1
+  else
+    if (x2 >= x1 && x2 >= x1)
+    then
+      x2,y2
+    else
+      x3,y3;;
+
 let cercle_circonscrit = fun triangle ->
   let x1 = triangle.p1.Map.x in
   let y1 = triangle.p1.Map.y in
@@ -16,7 +38,6 @@ let cercle_circonscrit = fun triangle ->
   let xC = ref 0. in
   let yC = ref 0. in
   let rayon = ref 0. in
-  let pcentre = ref ({Map.x = 0; Map.y = 0; Map.z = 0.}) in
   begin
     (* cas général *)
     ap1p2 := (float (-(x2 - x1))) /. (float (y2 - y1));
@@ -27,32 +48,43 @@ let cercle_circonscrit = fun triangle ->
     if (y2 - y1) = 0
     then
       begin
-	ap1p2 := (float (-(x2 - x1)));
-	bp1p2 := (float y1);
+	(* on prendre la droite p1p3 à la place *)
+	ap1p2 := (float (-(x3 - x1))) /. (float (y3 - y1));
+	bp1p2 := (float (x3 * x3 - x1 * x1 + y3 * y3 - y1 * y1)) /. (float (2 * (y3 - y1)));
       end;
     if (y3 - y2) = 0
     then
       begin
-	ap2p3 := (float (-(x3 - x2)));
-	bp2p3 := (float y2);
+	(* on prendre la droite p1p3 *)
+	ap2p3 := (float (-(x3 - x1))) /. (float (y3 - y1));
+	bp2p3 := (float (x3 * x3 - x1 * x1 + y3 * y3 - y1 * y1)) /. (float (2 * (y3 - y1)));
       end;
     xC := (!bp1p2 -. !bp2p3) /. (!ap2p3 -. !ap1p2);
     yC := (!ap1p2 *. !xC +. !bp1p2);
-    rayon := sqrt ((!xC -. (float x1))*.(!xC -. (float x1)) +. (!yC -. (float y1))*.(!yC -. (float y1)));
-    pcentre := {Map.x = (int_of_float !xC); Map.y = (int_of_float !yC);Map.z = 0.};
-    if !pcentre = triangle.p1
+    rayon := sqrt ((!xC -. (float x2))*.(!xC -. (float x2)) +. (!yC -. (float y2))*.(!yC -. (float y2)));
+    if (((!ap2p3 -. !ap1p2) <= 0.001 && (!ap2p3 -. !ap1p2) >= 0.) || ((!ap2p3 -. !ap1p2)>= (-0.001) && (!ap2p3 -. !ap1p2) <= 0.))
     then
-      rayon := sqrt ((!xC -. (float x2))*.(!xC -. (float x2)) +. (!yC -. (float y2))*.(!yC -. (float y2)));
+      begin
+	let xmin,ymin = minimum x1 x2 x3 y1 y2 y3 in
+	let xmax,ymax = maximum x1 x2 x3 y1 y2 y3 in
+	let () = Printf.printf "min %d %d max %d %d" xmin ymin xmax ymax in
+	begin
+	  xC :=  ((float xmin) +. (float xmax))/.2.;
+	  yC :=  ((float ymin) +. (float ymax))/.2.;
+	  rayon := sqrt ((!xC +. (float xmin))*.(!xC -. (float xmin)) +. (!yC -. (float ymin))*.(!yC -. (float ymin)));
+	end;
+    if (!xC = (float x2) && !yC = (float y2) && not(((!ap2p3 -. !ap1p2) <= 0.001 && (!ap2p3 -. !ap1p2) >= 0.) || ((!ap2p3 -. !ap1p2)>= (-0.001) && (!ap2p3 -. !ap1p2) <= 0.)))
+    then
+      rayon := sqrt ((!xC -. (float x3))*.(!xC -. (float x3)) +. (!yC -. (float y3))*.(!yC -. (float y3)));
+      end;
   end;
-  (!pcentre), (!rayon) ;;
+  (!xC),(!yC), (!rayon) ;;
 
 let dans_cercle = fun triangle sommet ->
-  let centre,rayon = cercle_circonscrit triangle in
+  let xC,yC,rayon = cercle_circonscrit triangle in
   let x = sommet.Map.x in
   let y = sommet.Map.y in
-  let xC = centre.Map.x in
-  let yC = centre.Map.y in
-  let distance = sqrt ( (float (xC - x))**2. +. (float (yC - y))**2.) in
+  let distance = sqrt (((xC -. (float x)) *. (xC -. (float x))) +. ((yC -. (float y)) *. (yC -. (float y)))) in
   distance < rayon;;
 
 let edge = fun point1 point2 triangle list polygon ->
@@ -84,7 +116,8 @@ let edge = fun point1 point2 triangle list polygon ->
 	loop queue;
   in loop list;
   if (!condition)
-  then polygon := (point1,point2)::(!polygon);
+  then
+      polygon := (point1,point2)::(!polygon);
   (!polygon);;
 
 let removetrian = fun tria listtriangle ->
@@ -93,7 +126,12 @@ let removetrian = fun tria listtriangle ->
     match list with
 	[] -> ()
       |triangle::queue ->
-	if (triangle = tria)
+	if (triangle.p1 = tri.p1 && triangle.p2 = tri.p2 && triangle.p3 = tri.p3 ) ||
+	  (triangle.p1 = tri.p1 && triangle.p2 = tri.p3 && triangle.p3 = tri.p2 ) ||
+	  (triangle.p1 = tri.p2 && triangle.p2 = tri.p1 && triangle.p3 = tri.p3 ) ||
+	  (triangle.p1 = tri.p2 && triangle.p2 = tri.p3 && triangle.p3 = tri.p1 ) ||
+	  (triangle.p1 = tri.p3 && triangle.p2 = tri.p1 && triangle.p3 = tri.p2 ) ||
+	  (triangle.p1 = tri.p3 && triangle.p2 = tri.p2 && triangle.p3 = tri.p1 )
 	then
 	  ()
 	else listefin := triangle::(!listefin);
@@ -125,9 +163,9 @@ let removePointCommunSuperTri = fun triangle supertri trianglelist ->
   end;;
   
 let delaunay = fun pointlist ->
-  let superPoint1 = {Map.x=0;Map.y=0;Map.z=0.} in
-  let superPoint2 = {Map.x=20000;Map.y=0;Map.z=0.} in
-  let superPoint3 = {Map.x=0;Map.y=20000;Map.z=0.} in
+  let superPoint1 = {Map.x=(-20000);Map.y=(-20000);Map.z=0.} in
+  let superPoint2 = {Map.x=20000;Map.y=(-20000);Map.z=0.} in
+  let superPoint3 = {Map.x=(-20000);Map.y=20000;Map.z=0.} in
   let superPoint4 = {Map.x=20000;Map.y=20000;Map.z=0.} in
   let supertri1 = {p1 = superPoint1 ; p2 = superPoint2 ; p3 = superPoint3 ;equa=(0.,0.,0.,0.) } in
   let supertri2 = {p1 = superPoint4 ; p2 = superPoint2 ; p3 = superPoint3;equa=(0.,0.,0.,0.) } in
@@ -156,9 +194,15 @@ let delaunay = fun pointlist ->
 	      polygon := edge triangle.p1 triangle.p2 triangle (!badTriangle) polygon;
               polygon := edge triangle.p2 triangle.p3 triangle (!badTriangle) polygon;
               polygon := edge triangle.p1 triangle.p3 triangle (!badTriangle) polygon;
-              trianglelist := removetrian triangle (!trianglelist);
               loopCorrectionTriangle reste;
         in loopCorrectionTriangle (!badTriangle);
+	let rec retirerTriangle = fun listmt ->
+	  match listmt with
+	      [] -> ()
+	    | triangle::reste ->
+	      trianglelist := removetrian triangle (!trianglelist);
+	      retirerTriangle reste;
+	in retirerTriangle (!badTriangle);
         let rec loopedgechangement = fun listpoly ->
           match listpoly with
               []->()
@@ -180,27 +224,35 @@ let delaunay = fun pointlist ->
   in retirerSuperTriangle (!trianglelist);
   (!trianglelist);;
 
-
 (*
-let () =
-  let point1 = {x=2;y=5;z=0.} in
-  let point2 = {x=10;y=15;z=0.} in
-  let point3 = {x=30;y=50;z=0.} in
-  let point4 = {x=20;y=10;z=0.} in
-  let point5 = {x=15;y=5;z=0.} in
-  let point6 = {x=3;y=3;z=0.} in
-  let listeDesPoints = point1::point2::point3::point4::point5::point6::[] in
-  let listeTriangle = delaunay listeDesPoints in
-  let () = Printf.printf "longueur triangle %d \n" (List.length listeTriangle) in
-  let rec affi = fun listeTriangle ->
-    match listeTriangle with
-	[] -> Printf.printf "erreur"
-      | t1::rest -> Printf.printf "t1 = %d %d %d %d %d %d\n" t1.p1.x t1.p1.y t1.p2.x t1.p2.y t1.p3.x t1.p3.y;
-	affi rest
-  in affi listeTriangle
-;;
+let point1 = {Map.x=(0);Map.y=(0);Map.z=0.};;
+let point2 = {Map.x=(10);Map.y=(0);Map.z=0.};;
+let point3 = {Map.x=(5);Map.y=(1);Map.z=0.};;
+let point4 = {Map.x=(5);Map.y=(5);Map.z=0.};;
+let point5 = {Map.x=(10);Map.y=(10);Map.z=0.};;
+let point6 = {Map.x=(3);Map.y=(10);Map.z=0.};;
+let point7 = {Map.x=(-2);Map.y=(8);Map.z=0.};;
+let point8 = {Map.x=(-800);Map.y=(-800);Map.z=0.};;
+let point9 = {Map.x=(-700);Map.y=(-700);Map.z=0.};;
+let point10 = {Map.x=(-300);Map.y=(-500);Map.z=0.};;
+*)
+(*
+let point1 = {Map.x= 2000;Map.y= -100;Map.z=0.};;
+let point2 = {Map.x= -1000;Map.y= -100;Map.z=0.};;
+let point3 = {Map.x= 500;Map.y=1500;Map.z=0.};;
+let point4 = {Map.x=0;Map.y= 500;Map.z=0.}
+let point5 = {Map.x=500;Map.y=0;Map.z=0.}
+let point6 = {Map.x=500;Map.y=1000;Map.z=0.}
+let point7 = {Map.x= 1000;Map.y= 200;Map.z=0.} 
+let point8 = {Map.x=1200;Map.y= 500;Map.z=0.}
+let point9 = {Map.x=(-700);Map.y=(-701);Map.z=0.} 
+let point10 = {Map.x=(-300);Map.y=(-500);Map.z=0.} 
+ 
+let listeDesPoints = point1::point2::point3::point4::point5::point6::point7::[];;
+let listeTriangle = delaunay listeDesPoints;;
+List.iter (fun i -> Printf.printf "triangle p1 %d %d p2 %d %d p3 %d %d\n" i.p1.Map.x i.p1.Map.y i.p2.Map.x i.p2.Map.y i.p3.Map.x i.p3.Map.y) listeTriangle;;
 *)
 
 let listeDesPoints = Map.point_xyz_points Map.points_alti;;
 let listeTriangle = delaunay listeDesPoints;;
-  
+
