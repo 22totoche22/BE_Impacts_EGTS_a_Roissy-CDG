@@ -1,6 +1,6 @@
 module Map = Lfpg_map
 
-type triangle ={p1: Map.point; p2: Map.point; p3: Map.point; mutable equa: float*float*float*float};;
+type triangle ={p1: Map.point; p2: Map.point; p3: Map.point; mutable equa: float*float*float};;
 
 let minimum = fun x1 x2 x3 y1 y2 y3->
   if (x1 <= x2 && x1 <= x3)
@@ -167,8 +167,8 @@ let delaunay = fun pointlist ->
   let superPoint2 = {Map.x=20000;Map.y=(-20000);Map.z=0.} in
   let superPoint3 = {Map.x=(-20000);Map.y=20000;Map.z=0.} in
   let superPoint4 = {Map.x=20000;Map.y=20000;Map.z=0.} in
-  let supertri1 = {p1 = superPoint1 ; p2 = superPoint2 ; p3 = superPoint3 ;equa=(0.,0.,0.,0.) } in
-  let supertri2 = {p1 = superPoint4 ; p2 = superPoint2 ; p3 = superPoint3;equa=(0.,0.,0.,0.) } in
+  let supertri1 = {p1 = superPoint1 ; p2 = superPoint2 ; p3 = superPoint3 ;equa=(0.,0.,0.) } in
+  let supertri2 = {p1 = superPoint4 ; p2 = superPoint2 ; p3 = superPoint3;equa=(0.,0.,0.) } in
   let trianglelist = ref (supertri1::supertri2::[]) in
   let badTriangle = ref [] in
   let polygon = ref [] in
@@ -208,7 +208,7 @@ let delaunay = fun pointlist ->
               []->()
             |edge::reste->
               let point1,point2 = edge in
-              let newTri = {p1=point1;p2=point2;p3=point;equa=(0.,0.,0.,0.)} in
+              let newTri = {p1=point1;p2=point2;p3=point;equa=(0.,0.,0.)} in
               trianglelist := newTri::(!trianglelist);
 	      loopedgechangement reste
         in loopedgechangement (!polygon);
