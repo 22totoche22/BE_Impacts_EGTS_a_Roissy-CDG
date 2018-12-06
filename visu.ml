@@ -6,7 +6,7 @@ let visu (marks,runways,taxiways,listetriangle)=
   Graphics.open_graph("");
   let (largeur, hauteur) = (1000,800) in
   Graphics.resize_window largeur hauteur;
-  let (largeur_max,hauteur_max) = (10000,8000) in
+  let (largeur_max,hauteur_max) = (10000,12000) in
   Graphics.set_color 0x000000;
   Graphics.set_line_width 0;
   
@@ -43,6 +43,11 @@ let visu (marks,runways,taxiways,listetriangle)=
     Graphics.lineto ((triangle.Del.p2.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p2.Map.y*hauteur/hauteur_max)+(hauteur/2));
     Graphics.lineto ((triangle.Del.p3.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p3.Map.y*hauteur/hauteur_max)+(hauteur/2));
     Graphics.lineto ((triangle.Del.p1.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p1.Map.y*hauteur/hauteur_max)+(hauteur/2));
+    Graphics.set_color 0xFF0000;
+    Graphics.fill_circle ((triangle.Del.p1.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p1.Map.y*hauteur/hauteur_max)+(hauteur/2)) 2;
+    Graphics.fill_circle ((triangle.Del.p2.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p2.Map.y*hauteur/hauteur_max)+(hauteur/2)) 2;
+    Graphics.fill_circle ((triangle.Del.p3.Map.x*largeur/largeur_max)+(largeur/2)) ((triangle.Del.p3.Map.y*hauteur/hauteur_max)+(hauteur/2)) 2;
+    Graphics.set_color 0xFF00FF;
   ) listetriangle;
   let rec loop() = loop() in
      loop();; 
