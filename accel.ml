@@ -129,14 +129,12 @@ let bonneintersection = fun dep arriv listeDelaunay  ->
 (* calcul de la nouvelle trajectoire en suivant les arêtes des triangles *)
 let trajectoire = fun pointsInitiaux listeDelaunay ->
   let pointsTrajet = ref [] in
-  let (pointdep::queue) = pointsInitiaux in
-  pointsTrajet := pointdep::[];
   let rec loop = fun listePoints ->
     match listePoints with
 	dernierpoint -> List.append (!pointTrajet) [dernierpoint]
       | pointdep::pointarriv::reste ->
 	let point = bonneintersection pointdep pointarriv listeDelaunay in
-	List.append (!pointTrajet) [point];
+	List.append (!pointTrajet) (pointdep::point::[]);
 	loop (pointarriv::reste);
   in loop pointsInitiaux;
   (!pointsTrajet);;
