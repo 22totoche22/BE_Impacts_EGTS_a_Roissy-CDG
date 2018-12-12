@@ -14,6 +14,7 @@ let draw_airport (marks,runways,taxiways,listetriangle) largeur largeur_max haut
       marks;
 
   (* on dessine les taxiways *)
+  Graphics.set_line_width 1;
   List.iter (fun taxiway ->
       match taxiway.Map.taxiway_points with
 	debut::suite ->  begin
@@ -23,7 +24,7 @@ let draw_airport (marks,runways,taxiways,listetriangle) largeur largeur_max haut
       taxiways;
 
   (* on dessine les pistes *)
-    Graphics.set_line_width 5;
+    Graphics.set_line_width 7;
     List.iter (fun runway ->
       match (runway.Map.runway_points) with
 	debut::suite ->  begin
@@ -48,6 +49,12 @@ let draw_airport (marks,runways,taxiways,listetriangle) largeur largeur_max haut
     ) listetriangle;;
 
 
+let wait milli =
+  let sec = milli /. 1000. in
+  let tm1 = Unix.gettimeofday () in
+  while Unix.gettimeofday () -. tm1 < sec do () done;;
+
+
 let rec event_loop x y (marks,runways,taxiways,listetriangle) hauteur_max largeur_max = 
     (* resize event *)
     let _ = Graphics.wait_next_event [Graphics.Poll]
@@ -57,13 +64,38 @@ let rec event_loop x y (marks,runways,taxiways,listetriangle) hauteur_max largeu
            draw_airport (marks,runways,taxiways,listetriangle) new_x (new_x * largeur_max / x) new_y ( new_y * hauteur_max / y) ;
     event_loop new_x new_y (marks,runways,taxiways,listetriangle) hauteur_max largeur_max;;
 
+
+
+
+let draw_circle largeur largeur_max hauteur hauteur_max x y  = 
+  Graphics.set_line_width 0;
+  Graphics.set_color Graphics.blue;
+  Graphics.remember_mode false; (* on désactive la mémoire graphique *)
+  Graphics.fill_circle x y 3; (* on n'écrit que sur la fenetre pas dans la memoire *)
+  wait 200.; (* pour voir on fait une attente, unix.sleep ne marche pas *)
+  Graphics.remember_mode true; (* on réactive la mémoire *)
+  Graphics.synchronize ();; (* on synchronise memoire et fenetre, ce qu'on a dessién disparait *)
+
+let move_flight list_flights largeur largeur_max hauteur hauteur_max=
+  List.iter (fun flight ->
+	List.iter (fun pt -> draw_circle largeur largeur_max hauteur hauteur_max ((pt.Map.x*largeur/largeur_max)+(largeur/2)) ((pt.Map.y*hauteur/hauteur_max)+(hauteur/2))) flight.Map.route) list_flights;;
+
+  
+
+
 let visu (marks,runways,taxiways,listetriangle)=
   Graphics.open_graph("");
-  let (largeur, hauteur) = (1000,800) in
+  let (largeur, hauteur) = (1200,800) in
   Graphics.resize_window largeur hauteur;
   let (largeur_max,hauteur_max) = (10000,8000) in
-  try event_loop largeur hauteur (marks,runways,taxiways,listetriangle) hauteur_max largeur_max 
+  try draw_airport (marks,runways,taxiways,listetriangle) largeur largeur_max hauteur hauteur_max;
+      move_flight Map.flights largeur largeur_max hauteur hauteur_max ;
   with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;; 
+
+
+
+
+
 
 
 let ()=
