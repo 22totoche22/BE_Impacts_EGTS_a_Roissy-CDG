@@ -9,3 +9,13 @@ let distance3D = fun point1 point2 ->
   let distance = sqrt (diffX *. diffX +. diffY *. diffY +. diffZ *. diffZ) in
   distance;;
 
+let distance2D = fun point1 point2 ->
+  let diffX = float (point1.Map.x - point2.Map.x) in
+  let diffY = float (point1.Map.y - point2.Map.y) in
+  let distance = sqrt (diffX *. diffX +. diffY *. diffY) in
+  distance;;
+
+let vitesse_5s_3d = fun point1 point2 ->
+  let distance = distance3D point1 point2 in
+  let vitesse = distance /. 5. in
+  vitesse;;
