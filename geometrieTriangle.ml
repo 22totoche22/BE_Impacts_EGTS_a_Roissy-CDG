@@ -47,6 +47,51 @@ let dansQuelTriangle = fun point listeTriangle ->
 
 
 
+(* il faut une fonction pour recuperer les coeffs d'une droite
+let coeffDroite = fun point1 point2 -> 
+ attention cas x1 = x2 !*)
+
+(* fonction intersection entre un segment et un cercle *)
+let intersecSegCercle = fun point1 point2 distance ->
+  let x3 = ref 0. in
+  let y3 = ref 0. in
+  let z3 = ref 0. in
+  begin
+    if (point2.Map.x = point1.Map.x)
+    then
+      if (point2.Map.y >= point1.Map.y)
+      then
+	begin
+	  x3 := float point1.Map.x;
+	  y3 := distance +. (float  point1.Map.y);
+	  z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.y - point1.Map.y)) *. (!y3 -. (float point1.Map.y)) +. point1.Map.z; 
+	end
+      else
+	begin
+	  x3 := float point1.Map.x;
+	  y3 := (float  point1.Map.y) -. distance;
+	  z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.y - point1.Map.y)) *. (!y3 -. (float point1.Map.y)) +. point1.Map.z; 
+	end
+    else
+      let coeffdroite = (float (point2.Map.y - point1.Map.y)) /. (float (point2.Map.x - point1.Map.x)) in
+      begin
+	if (point2.Map.x > point1.Map.x)
+	then
+	  x3 := (float point1.Map.x) +. distance /. (sqrt (1. +. coeffdroite *. coeffdroite))
+	else
+	  x3 := (float point1.Map.x) -. distance /. (sqrt (1. +. coeffdroite *. coeffdroite));
+	if (point2.Map.y >= point1.Map.y)
+	then
+	  y3 := coeffdroite *. distance /. (sqrt (1. +. coeffdroite *. coeffdroite)) +. (float point1.Map.y)
+	else
+	  y3 := (float point1.Map.y) -. coeffdroite *. distance /. (sqrt (1. +. coeffdroite *. coeffdroite));
+	z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.x - point1.Map.x)) *. (!x3 -. (float point1.Map.x)) +. point1.Map.z; 
+      end;
+  end;
+  {Map.x= int_of_float (!x3);Map.y= int_of_float (!y3);Map.z= (!z3)};;
+
+
+
 (*
 let () =
   let condition = point_dans_triangle point_test triangle_test in
