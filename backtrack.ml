@@ -1,5 +1,5 @@
 module Pente = Pente
-
+(*
 (* fun detectionConflits : *)
 (* tous les avions avancent de 5s 
    pour tous les avions i de listeAvions faire
@@ -83,3 +83,4 @@ let backtrack = fun ->
     loop conf listeAvions (currentTime + 5)
   in loop conflit listFlight 0;;
 
+*)

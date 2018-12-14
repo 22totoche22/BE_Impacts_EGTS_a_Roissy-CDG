@@ -25,8 +25,8 @@ type flight = {dep_arr : string;
 	       flight_category : string;
 	       flight_stand : string;
 	       flight_qfu : string;
-	       h_dep : string;
-	       h_arr : string;
+	       h_dep : int;
+	       h_arr : int;
 	       route : point list}
 
 exception Empty
@@ -116,8 +116,8 @@ let read_file_flights nom_fichier_flights =
 			     flight_category = category;
 			     flight_qfu = runway;
 			     flight_stand = stand;
-			     h_dep = prove;
-			     h_arr = desti;
+			     h_dep = int_of_string prove;
+			     h_arr = int_of_string desti;
 			     route = (List.map stringtotuple coordonnees)}::flights in
 	  read_file_rec new_flights;
       |_ -> raise Empty

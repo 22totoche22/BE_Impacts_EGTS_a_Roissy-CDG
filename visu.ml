@@ -70,36 +70,58 @@ let rec event_loop x y (marks,runways,taxiways,listetriangle) hauteur_max largeu
 let draw_circle largeur largeur_max hauteur hauteur_max x y  = 
   Graphics.set_line_width 0;
   Graphics.set_color Graphics.blue;
-  Graphics.remember_mode false; (* on désactive la mémoire graphique *)
-  Graphics.fill_circle x y 3; (* on n'écrit que sur la fenetre pas dans la memoire *)
-  wait 200.; (* pour voir on fait une attente, unix.sleep ne marche pas *)
-  Graphics.remember_mode true; (* on réactive la mémoire *)
-  Graphics.synchronize ();; (* on synchronise memoire et fenetre, ce qu'on a dessién disparait *)
+  Graphics.fill_circle x y 3;; (* on n'écrit que sur la fenetre graphique pas dans la memoire graphique *)
+   
 
+(*
 let move_flight list_flights largeur largeur_max hauteur hauteur_max=
   List.iter (fun flight ->
 	List.iter (fun pt -> draw_circle largeur largeur_max hauteur hauteur_max ((pt.Map.x*largeur/largeur_max)+(largeur/2)) ((pt.Map.y*hauteur/hauteur_max)+(hauteur/2))) flight.Map.route) list_flights;;
 
-  
+*)
+
+let timer time =
+  let h = time / 3600 in
+  let rest = time mod 3600 in
+  let min = rest / 60 in
+  let s = rest mod 60 in
+  (h,min,s);;
+    
+
+let draw_clock time largeur largeur_max hauteur hauteur_max =
+  Graphics.moveto (largeur/2) ((3000*hauteur/hauteur_max)+(hauteur/2));
+  Graphics.set_line_width 0;
+  Graphics.set_color Graphics.black;
+  let (h,m,s) = timer time in
+  let new_time = Printf.sprintf ("%d : %d : %d") h m s in
+  Graphics.draw_string  new_time;;
 
 
+let move_flights points largeur largeur_max hauteur hauteur_max time= 
+Graphics.remember_mode false;(* on désactive la mémoire graphique *)
+  List.iter (fun i ->
+     
+    let (x,y) =  (i.Map.x,i.Map.y) in
+    draw_circle largeur largeur_max hauteur hauteur_max ((x*largeur/largeur_max)+(largeur/2)) ((y*hauteur/hauteur_max)+(hauteur/2));
+  ) points;
+  draw_clock time largeur largeur_max hauteur hauteur_max;
+  wait 20.; (* pour voir le dessin on fait une attente, unix.sleep ne marche pas *)
+  Graphics.remember_mode true; (* on réactive la mémoire *)
+  Graphics.synchronize ();; (* on synchronise memoire et fenetre, ce qu'on a dessiné disparait *)
+
+
+
+
+(*
 let visu (marks,runways,taxiways,listetriangle)=
   Graphics.open_graph("");
   let (largeur, hauteur) = (1200,800) in
   Graphics.resize_window largeur hauteur;
   let (largeur_max,hauteur_max) = (10000,8000) in
   try draw_airport (marks,runways,taxiways,listetriangle) largeur largeur_max hauteur hauteur_max;
-      move_flight Map.flights largeur largeur_max hauteur hauteur_max ;
   with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;; 
 
-
-
-
-
-
-
-let ()=
-  visu (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle);;
+*)
 
 
   
