@@ -77,8 +77,9 @@ let print_triangle triangle =
     
   end;;
 
+(*
 let ()=
   trianglelistwithequa Del.listeTriangle;
     List.iter (fun i -> print_triangle i ) Del.listeTriangle;;
-
+*)
     
