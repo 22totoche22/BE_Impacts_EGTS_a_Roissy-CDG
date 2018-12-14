@@ -47,7 +47,7 @@ let a320 = {tipe = "a320";
 	aerocoef = 1.032;
 	stepcoef = 4.1};;
 
-let a319 = {tipe = "a320";
+let a319 = {tipe = "a319";
  	mass_dep = 63000.;
  	mass_arri = 57000.;
  	tireradius = 0.56;
@@ -58,7 +58,7 @@ let a319 = {tipe = "a320";
 	aerocoef = 1.032;
 	stepcoef = 4.1};;
 
-let a321 = {tipe = "a320";
+let a321 = {tipe = "a321";
  	mass_dep = 81000.;
  	mass_arri = 73000.;
  	tireradius = 0.56;
@@ -95,7 +95,7 @@ let intersect a b c d tri =
   
 let croise_tri pt_dep pt_arr tri =
   let pti = ref ({Map.x=0;Map.y=0;Map.z=0.}) in
-  if not (Pente.point_dans_triangle pt_arr tri)
+  if not (Geo.point_dans_triangle pt_arr tri)
   then
     begin
       pti := {Map.x=0;Map.y=0;Map.z=1.0};
@@ -111,35 +111,27 @@ let croise_tri pt_dep pt_arr tri =
 (* permet de prendre le bon triangle (dans le cas où on est pas dans le bon triangle le point d'intersection avec celui ci serait notre point de depart *)
 let bonneintersection = fun dep arriv listeDelaunay  ->
   let listeTriangle = Geo.dansQuelTriangle dep listeDelaunay in
-  let ptcorrec = ref ({Map.x=0,Map.y=0;Map.z=0.}) in
+  let ptcorrec = ref ({Map.x=0;Map.y=0;Map.z=0.}) in
   let ptcomparaison = {Map.x=0;Map.y=0;Map.z=1.0} in
   let ptref = {Map.x=0;Map.y=0;Map.z=0.0} in
   let rec loop = fun listeTriangle ->
     match listeTriangle with
 	[] -> ();
-      | triangle::reste -> pt = croise_tri dep arriv triangle;
+      | triangle::reste ->
+	let pt = croise_tri dep arriv triangle in
 	if (pt != ptcomparaison && pt != ptref)
 	then ptcorrec := pt;
 	loop reste;
   in loop listeTriangle;
-  if (!ptcorrec = ptref)
+  if (!ptcorrec = ptref || !ptcorrec = ptcomparaison)
   then ptcorrec := arriv;
   (!ptcorrec);;
-
-(* on change la maniere de procéder :
-il faut calculer la position où on se trouvera au bout d'un temps t 
-entre 2 points
-si 2 fois le meme -> passe au suivant (le electrique n'attend pas)
-si pas 2 fois le meme -> on calcul entre les 2 la nouvelle position
-   il faut penser à noter le temps que prendra le "reste" du segment pour relancer correctement sur les 2 points suivants
-*)
-
 
 
 (* calcul de la nouvelle vitesse a partir de 2 points connus appartenant à un même triangle *)
 (* ici calcul avec les moteurs electriques *)
 let new_speed = fun depart inter avion masse speed->
-  let distance = Pente.distance2d depart inter in
+  let distance = Pente.distance2D depart inter in
   let slope = (depart.Map.z -. inter.Map.z) /. distance in
   let nextspeed = nexspeedegts avion masse slope speed in
   nextspeed ;;
@@ -150,17 +142,17 @@ let temps2point1triangle = fun pointdep point avion masse vitesseAvant ->
   let timeElect = distance /. vitesseElec in
   timeElect;;
 
-let distanceParcourue = fun pointdep point temps ->
+let distanceParcourue = fun pointdep point temps avion masse vitesseAvant ->
   let vitesseElec = new_speed pointdep point avion masse vitesseAvant  in
   let distanceAparcourir = vitesseElec *. temps in
-  let pointAGarder = Geo.intersecSegCercle pointdep point distanceAParcourir in
+  let pointAGarder = Geo.intersecSegCercle pointdep point distanceAparcourir in
    pointAGarder;;
 
   
 let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation ->
   let listePointAGarder = ref [] in
   let newCompteur =  ref 0.  in
-  let vitesseNoElec = Geo.vitesse_5s_3d pointdep pointarriv in
+  let vitesseNoElec = Pente.vitesse_5s_3d pointdep pointarriv in
   let rec loop = fun point1 ->
     match point1 with
       | a when a = pointarriv -> ()
@@ -172,7 +164,8 @@ let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangu
 	  if ((!newCompteur) >= timeSimulation)
 	  then
 	    begin
-	      List.append (!listePointAGarder) ((distanceParcourue point1 pointintersec (timeSimulation -. (!compteurTempsA5s)))::[]);
+	      let pointAgarder = distanceParcourue point1 pointintersec (timeSimulation -. (!compteurTempsA5s)) avion masse vitesseNoElec in
+	      listePointAGarder := List.append (!listePointAGarder) (pointAgarder::[]);
 	      compteurTempsA5s := (!newCompteur) -. timeSimulation;
 	    end
 	  else
@@ -185,20 +178,40 @@ let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangu
 let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation timeSimulation ->
   let compteurTempsA5s = ref 0. in
   let trajectoireElectrique = ref [] in
-  let (pointdebut::reste) = trajectoireInitiale in
-  trajectoireElectrique := pointdebut::[];
-  let loop = fun listePoints ->
+  begin
+  match trajectoireInitiale with
+    | [] -> ()
+    | pointdebut::reste -> trajectoireElectrique := pointdebut::[];
+  end;
+  let rec loop = fun listePoints ->
     match listePoints with
+      | [] -> ()
       | [a] ->
 	if (!compteurTempsA5s) >= 3.
 	then
-	    List.append (!trajectoireElectrique) (a::[]);
+	    trajectoireElectrique := List.append (!trajectoireElectrique) (a::[]);
       | pointdep::pointarriv::reste ->
 	let listeAajouter = calculTrajectoireEntre2points pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation in
-	List.append (!trajectoireElectrique) listeAajouter;
+	trajectoireElectrique := List.append (!trajectoireElectrique) listeAajouter;
 	loop (pointarriv::reste);
   in loop trajectoireInitiale;
   (!trajectoireElectrique);;
 
 
+
+(*
 (* test à faire pour verifier les points obtenus *)
+(* a verifier avec la vision des trajectoires *)
+let p1={Map.x= -3787;Map.y=519;Map.z=0.}
+let p2={Map.x= -3799;Map.y=524;Map.z=100.}
+let p3={Map.x= -3812;Map.y=531;Map.z=200.}
+let p4={Map.x= -3825;Map.y=539;Map.z=300.}
+let traj=p1::p2::p3::p4::[]
+let delau = Del.listeTriangle
+let time = 5.
+let masse = a320.mass_dep
+
+let trajectoire = calculTrajectoireTotal traj a320 masse delau time;;
+
+List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Map.y i.Map.z) trajectoire;;
+*)
