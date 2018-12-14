@@ -33,17 +33,19 @@ let point_dans_triangle point_m triangle_abc =
   (ab_ac >= 0 && ba_bc >= 0 && ca_cb >= 0);;
 
 (* retourne la liste des triangles auquels appartient le point *)
-let dansQuelTriangle = fun point listeTriangle ->
-  let liste = ref [] in
-  let rec loop = fun listeTriange->
-    match listeTriangle with
-	[] -> ();
+let dansQuelTriangle = fun point listeTriangles ->
+  let rec loop = fun listetriangle liste ->
+    match listetriangle with
+	[] -> liste;
       | triangle::queue ->
-	if point_dans_triangle point triangle
-	then liste := triangle::(!liste);
-	loop queue; 
-  in loop listeTriangle;
-  (!liste);;
+	  if (point_dans_triangle point triangle)
+	  then
+	    let newliste = triangle::liste
+	    in loop queue newliste
+	  else 
+	    let newliste = liste in
+	    loop queue newliste 
+  in loop listeTriangles [] ;;
 
 
 
@@ -96,4 +98,13 @@ let intersecSegCercle = fun point1 point2 distance ->
 let () =
   let condition = point_dans_triangle point_test triangle_test in
   Printf.printf "%b" condition ;;
+*)
+
+(*
+let p1 = {Map.x=0;Map.y=0;Map.z=0.}
+let p2 = {Map.x=5;Map.y=5;Map.z=10.}
+let p3 = {Map.x=5;Map.y=0;Map.z=5.}
+let distance = 2.9
+let result = intersecSegCercle p1 p2 distance ;;
+Printf.printf "\nINTERSECTION point %d %d %f\n" result.Map.x result.Map.y result.Map.z
 *)
