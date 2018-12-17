@@ -47,6 +47,8 @@ let trianglelistwithequa triangle_list =
     i.Del.equa <- solu
   ) triangle_list;;
 
+(*
+
 let print_triangle triangle =
   begin
     print_string " point1 : ";
@@ -76,6 +78,8 @@ let print_triangle triangle =
     print_string "\n"
     
   end;;
+
+*)
 
 (*
 let ()=
