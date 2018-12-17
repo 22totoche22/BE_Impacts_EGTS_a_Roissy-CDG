@@ -111,9 +111,9 @@ let croise_tri pt_dep pt_arr tri =
 (* permet de prendre le bon triangle (dans le cas où on est pas dans le bon triangle le point d'intersection avec celui ci serait notre point de depart *)
 let bonneintersection = fun dep arriv listeDelaunay  ->
   let listeTriangle = Geo.dansQuelTriangle dep listeDelaunay in
-  let ptcorrec = ref ({Map.x=0;Map.y=0;Map.z=0.}) in
-  let ptcomparaison = {Map.x=0;Map.y=0;Map.z=1.0} in
-  let ptref = {Map.x=0;Map.y=0;Map.z=0.0} in
+  let ptcorrec = ref ({Map.x= max_int;Map.y= max_int;Map.z= 0.}) in
+  let ptcomparaison = {Map.x= max_int;Map.y= max_int ;Map.z=1.0} in
+  let ptref = {Map.x= max_int;Map.y= max_int;Map.z=0.} in
   let rec loop = fun listeTriangle ->
     match listeTriangle with
 	[] -> ();
@@ -147,6 +147,12 @@ let distanceParcourue = fun pointdep point temps avion masse vitesseAvant ->
   let distanceAparcourir = vitesseElec *. temps in
   let pointAGarder = Geo.intersecSegCercle pointdep point distanceAparcourir in
    pointAGarder;;
+
+let calculAltitudePoint = fun point triangulation ->
+  let listeTriangle = Geo.dansQuelTriangle point triangulation in
+  match listeTriangle with
+      [] -> 0.;
+    | triangle::reste -> Pente.altitudePoint point triangle;;
 
   
 let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation ->
@@ -189,9 +195,17 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
       | [a] ->
 	if (!compteurTempsA5s) >= 3.
 	then
-	    trajectoireElectrique := List.append (!trajectoireElectrique) (a::[]);
+	  begin
+	    let z = calculAltitudePoint a triangulation in
+	    let  b = {Map.x = a.Map.x; Map.y = a.Map.y; Map.z = z} in
+	    trajectoireElectrique := List.append (!trajectoireElectrique) (b::[])
+	  end;
       | pointdep::pointarriv::reste ->
-	let listeAajouter = calculTrajectoireEntre2points pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation in
+	let zdep  = calculAltitudePoint pointdep triangulation in
+	let depAlti = {Map.x = pointdep.Map.x; Map.y = pointdep.Map.y; Map.z = zdep} in
+	let zarr  = calculAltitudePoint pointarriv triangulation in
+	let arrAlti = {Map.x = pointarriv.Map.x; Map.y = pointarriv.Map.y; Map.z = zarr} in
+	let listeAajouter = calculTrajectoireEntre2points depAlti arrAlti avion masse triangulation compteurTempsA5s timeSimulation in
 	trajectoireElectrique := List.append (!trajectoireElectrique) listeAajouter;
 	loop (pointarriv::reste);
   in loop trajectoireInitiale;
