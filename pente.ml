@@ -19,3 +19,8 @@ let vitesse_5s_3d = fun point1 point2 ->
   let distance = distance3D point1 point2 in
   let vitesse = distance /. 5. in
   vitesse;;
+
+let altitudePoint = fun point triangle ->
+  let a,b,c = triangle.Del.equa in
+  let z = a *. (float point.Map.x) +. b *. (float point.Map.y) +. c in
+  z;;
