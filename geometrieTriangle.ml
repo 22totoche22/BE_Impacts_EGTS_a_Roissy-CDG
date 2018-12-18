@@ -2,6 +2,24 @@ module Map = Lfpg_map
 module Del = Delaunay
 
 
+
+let equadroite = fun pointA pointB ->
+  let a = ref 0. in
+  let b = ref 0. in
+  if (pointA.Map.x != pointB.Map.x)
+  then
+    begin
+      a :=  (float (pointB.Map.y - pointA.Map.y)) /. (float (pointB.Map.x - pointA.Map.x));
+      b := (float pointB.Map.y) -. (float pointB.Map.x) *. !a;
+    end
+  else
+    begin(* attention a ne servira pas dans ce cas la *)
+      a := float (max_int);
+      b := float pointB.Map.x;
+    end;
+  !a,!b;;
+
+      
 let produit_vectoriel (abx,aby) (bcx,bcy) =
   abx * bcy - aby * bcx;;
 
