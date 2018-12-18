@@ -103,11 +103,11 @@ let intersect a b c d tri =
   pti;;
   
 let croise_tri pt_dep pt_arr tri =
-  let pti = ref ({Map.x=0;Map.y=0;Map.z=0.}) in
+  let pti = ref ({Map.x= max_int;Map.y= max_int;Map.z=0.}) in
   if not (Geo.point_dans_triangle pt_arr tri)
   then
     begin
-      pti := {Map.x=0;Map.y=0;Map.z=1.0};
+      pti := {Map.x= max_int;Map.y= max_int;Map.z=1.0};
       if croise_segment tri.Del.p1 tri.Del.p2 pt_dep pt_arr
       then pti := intersect tri.Del.p1 tri.Del.p2 pt_dep pt_arr tri;
       if croise_segment tri.Del.p2 tri.Del.p3 pt_dep pt_arr
@@ -196,7 +196,10 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
   begin
   match trajectoireInitiale with
     | [] -> ()
-    | pointdebut::reste -> trajectoireElectrique := pointdebut::[];
+    | pointdebut::reste ->
+      	let zdep  = calculAltitudePoint pointdebut triangulation in
+	let point  = {Map.x = pointdebut.Map.x; Map.y = pointdebut.Map.y; Map.z = zdep} in
+	trajectoireElectrique := point::[];
   end;
   let rec loop = fun listePoints ->
     match listePoints with
