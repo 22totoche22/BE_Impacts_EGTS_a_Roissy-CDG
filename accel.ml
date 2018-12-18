@@ -1,8 +1,8 @@
 module Pente = Pente
 module Map = Lfpg_map
 module Del = Delaunay
-module Geo = GeometrieTriangle;;
-
+module Geo = GeometrieTriangle
+module Pivot = Pivot
 exception PointFailure;;
 
 type avion = {tipe : string;
@@ -230,13 +230,14 @@ let p2={Map.x= -3799;Map.y=524;Map.z=0.}
 let p3={Map.x= -3812;Map.y=531;Map.z=0.}
 let p4={Map.x= -3825;Map.y=539;Map.z=0.}
 let traj=p1::p2::p3::p4::[]
-let delau = Del.listeTriangle
+let delau = Pivot.triangle_equa 
 let time = 5.
-let masse = a320.mass_dep
-
+let masse = a320.mass_dep;;
 let trajectoire = calculTrajectoireTotal traj a320 masse delau time ;; 
-let () = 
+let () =
+  
 List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Map.y i.Map.z) trajectoire;;
+
 
 
 

@@ -45,9 +45,10 @@ let trianglelistwithequa triangle_list =
     let solu_c = sol.(2) in
     let solu = (solu_a, solu_b,solu_c) in 
     i.Del.equa <- solu
-  ) triangle_list;;
+  ) triangle_list;
+  triangle_list;;
 
-(*
+
 
 let print_triangle triangle =
   begin
@@ -79,11 +80,9 @@ let print_triangle triangle =
     
   end;;
 
-*)
 
-(*
-let ()=
-  trianglelistwithequa Del.listeTriangle;
-    List.iter (fun i -> print_triangle i ) Del.listeTriangle;;
-*)
+
+let triangle_equa = trianglelistwithequa Del.listeTriangle;;
+(*List.iter (fun i -> print_triangle i ) triangle_equa;;*)
+
     
