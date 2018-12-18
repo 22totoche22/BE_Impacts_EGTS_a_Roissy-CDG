@@ -1,86 +1,134 @@
 module Pente = Pente
-(*
+module Map = Lfpg_map
+module Flight = Flight
+module Accel = Accel
+
+let listeVolsCourrants = fun listFlights currentTime ->
+	Flight.new_flights listFlights currentTime;;
+
 (* fun detectionConflits : *)
-(* tous les avions avancent de 5s 
-   pour tous les avions i de listeAvions faire
-     pour tous les avions j de avionI::resteListeAvions faire
-       si positionCouranteAvionI == positionCouranteAvionJ alors
+(* tous les vols avancent de 5s 
+   pour tous les vols i de listeVols faire
+     pour tous les vols j de volI::resteListeVols faire
+       si positionCourantevolI == positionCourantevolJ alors
          conf = true;
-         listeConflits = listeConflits::avionI; *)
-let detectionConflits = fun conf listeAvions listConf index ->
+   listeConflits = listeConflits::volI; *)
+  
+let detectionConflits = fun conf listeVols listConf currentTime ->
+  
   let rec loop listeAv =
     match listeAv with
 	[] -> ()
-      | avion::queue -> let rec loopInt av liste =
-			  match queue with
-			      [] -> ()
-			    | avionCompare::reste -> if Pente.distance3D avion.route[index] avionCompare.route[index] < 5 then
-				begin
-				  conf := true;
-				  listConf = listConf::avion;
-				end;
-			      loopInt avion reste in
-			loopInt avion queue;
-			loop queue in
-  loop listeAvions;
-  listConf;;
+      | vol::queue -> begin
+	let indexTraj = (currentTime - vol.Map.h_dep) / 5 in
+	
+	let rec loopInt av liste =
+	  match queue with
+	      [] -> ()
+	    | volCompare::reste -> begin
+	      let indexTrajCompare = (currentTime - volCompare.Map.h_dep) / 5 in
+	      if (Pente.distance3D (List.nth vol.Map.route indexTraj) (List.nth volCompare.Map.route indexTrajCompare)) < 5. then
+			begin
+		  		conf := true;
+		  		listConf := vol::(!listConf); 
+		  		(* problème : si le vol est en conflit avec plusieurs autres vols, alors il sera ajouté plusieurs fois à la liste*)
+			end;
+	    end;
+	      loopInt vol reste in
+	
+	loopInt vol queue;
+      end;
+	loop queue in
+  
+  loop listeVols;
+  ((listConf), (conf));;
 
 
-(* pour tous les avions de listConf faire
-     pour tous les avions i de ListAvions otée de ListConf faire
-       positionAvionConflitT = positionAvionConflitT-5s;
-       si positionAvionConflitT = positionAvionIT alors
-         recalcul de la trajetoire de avionConflit
-         retirer avionConf de listConf
+(* pour tous les vols de listConf faire
+     pour tous les vols i de Listvols otée de ListConf faire
+       positionvolConflitT = positionvolConflitT-5s;
+       si positionvolConflitT = positionvolIT alors
+         recalcul de la trajetoire de volConflit
+         retirer volConf de listConf
    loop2 lisConf t *)
-let correctionConflits = fun listConf listAv index ->
+
+let recalculTraj = fun vol currentTime plane masse triangulation ->
+	let traj = vol.Map.route in
+	let backTraj = [] in
+	let foreTraj = [] in
+	let currentIndex = (currentTime - vol.Map.h_dep) / 5 in
+	let rec loop trajloop =
+		match trajloop with
+		  [] -> ()
+		| tete::queue -> if List.length queue > (List.length traj - currentIndex) then
+							backTraj = List.append [tete] backTraj
+						else 
+							foreTraj = List.append [tete] foreTraj;
+		loop queue;
+	in loop traj;
+	let newTraj = Accel.calculTrajectoireTotal foreTraj plane masse triangulation (float currentTime) in
+	newTraj = backTraj @ newTraj;
+	newTraj;;
+
+let correctionConflits = fun listConf listAv currentTime plane masse triangulation ->
+  let listfiltered = ref [] in
   let rec loop listC =
     match listC with
 	[] -> ()
-      | avionConflit::queue -> begin
-	avionConflit.route[index] = avionConflit.route[index - 1];
-	let stillConflict = false in
+      | volConflit::queue -> begin
+      	let indexConflit = (currentTime - volConflit.Map.h_dep) / 5 in
+	List.nth volConflit.Map.route indexConflit = List.nth volConflit.Map.route (indexConflit - 1); (* peut-être problème avec les vols qui sont toujours en conflit au moment index-1 ==> à vérifier *)
+	let stillConflict = ref false in
 	
 	let rec loopInt listA =
-	  match listAv with
+	  match listA with
 	      [] -> ()
-	    | avion::reste -> if avion != avionConflit then
-		if  Pente.distance3D avionConflit.route[index] avion.route[index] < 5 then
-		  stillConflict = true;
+	    | vol::reste -> if vol != volConflit then
+		begin
+		  let index = (currentTime - vol.Map.h_dep) / 5 in
+		  if  Pente.distance3D (List.nth volConflit.Map.route indexConflit) (List.nth vol.Map.route index) < 5. then
+		    stillConflict := true;
+		end;
 	      loopInt reste;
 	in loopInt listAv;
-	
-	if stillConflict == false then
+
+	if (!stillConflict) == false then
 	  begin
-	    avionConflit.route = (* fonction pour calculer la trajectoire depuis le point courant d'indice index jusqu'au point final ? *);
-	    listConf = List.filter (a != avionConflit) listConf;
+	  	
+	    volConflit.Map.route = (recalculTraj volConflit currentTime plane masse triangulation);(* fonction pour calculer la trajectoire depuis le point courant d'indice index jusqu'au point final ? *)
+	    listfiltered := (List.filter (fun i -> i != volConflit) (listC));
 	  end;
       end;
-	loop listC;
+	loop (!listfiltered);
   in loop listConf;;
-	
-	    
 
+(* pour tous les vols de listeVols faire
+     si positionvolCurrentTime = lastPositionvol alors
+   retirer vol de listeVols *)
 
-let backtrack = fun ->
-  let listeConflits = [] in
+let supprFlights = fun listeAv currentTime ->
+  let rec suppr listA =
+    match listA with
+	[] -> ()
+      | vol::queue -> if (currentTime == vol.Map.h_arr) then
+	  listeAv := List.filter (fun a -> a != vol) (!listeAv);
+	suppr queue
+  in suppr (!listeAv);;
+
+(*)
+let backtrack = fun listFlights currentTime plane masse triangulation ->
+  let listeConflits = ref [] in
   let conflit = ref false in
-  let indexTraj = currentTime / 5 + 1 in
-
-  let rec loop = fun conf listeAvions indexTraj ->
-    while conf = false do
-      listeConflits = detectionConflits (!conflit) listeAvions listeConflits indexTraj;
-    done;
-    
-    let rec loop2 = fun listConf, t ->
-      correctionConflits = fun listConflits listAvions indexTraj;
-    in loop2 listeConflits currentTime
-
-    (* pour tous les avions de listeAvions faire
-         si positionAvionCurrentTime = lastPositionAvion alors
-       retirer avion de listeAvions *)
-
-    loop conf listeAvions (currentTime + 5)
-  in loop conflit listFlight 0;;
-
+  let listeVols = ref [] in
+  
+  let rec loop = fun listeVols currentTime ->
+(*ERREUR*)  	listeVols := listeVolsCourrants listFlights currentTime; (*ERREUR*)
+(*ERREUR*)  	listeConflits, conflit := (detectionConflits (!conflit) listeVols (!listeConflits) currentTime);
+(*ERREUR*)  	match (!conflit) with
+(*ERREUR*) 	  false -> ()
+(*ERREUR*) 	| true -> correctionConflits (!listeConflits) listeVols currentTime plane masse triangulation;
+(*ERREUR*)  supprFlights listeVols currentTime;
+(*ERREUR*)   loop listeVols (currentTime + 5)
+      
+  in loop listFlights 0;;
 *)
