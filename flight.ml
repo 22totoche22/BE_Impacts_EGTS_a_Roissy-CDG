@@ -1,6 +1,7 @@
 module Map = Lfpg_map
 module Visu = Visu
 module Del = Delaunay
+module Accel = Accel
   
 let print_avion_simulation listeavion_simulation =
   List.iter (fun avion -> print_string avion.Map.flight_id; print_string " : " ) listeavion_simulation ;;
@@ -46,11 +47,11 @@ let  new_trajectory route =
 
 (* renvoie les trajectoires sans le premier point *)
 let new_trajectories trajectories =
-  List.map (fun route -> let (pt,traj) = new_trajectory route in traj) trajectories;;
+  List.map (fun route ->  let (pt,traj) = new_trajectory route in traj ) trajectories;;
 
 (* renvoie les premiers points des trajectoires *)
 let new_points trajectories =
-  List.map (fun route -> let (pt,traj) = new_trajectory route in pt) trajectories;;
+  List.map (fun route ->  let (pt,traj) = new_trajectory route in pt) trajectories;;
     
 
 (* simulation *)
@@ -82,7 +83,47 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) dt =
   simu debut_time  debut_listeavion_simulation debut_trajectoires;
   with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;;
 
+exception Trajectory
 
+let rec trajectoires_altitude quantite liste_avion liste_avion_tire triangulation timeSimulation =
+  if quantite = 0 then
+    liste_avion
+  else
+    begin
+      let size = List.length liste_avion in
+      let rec nombre_tire () =
+	let n = Random.int size in
+	if not (List.mem n liste_avion_tire) then n
+	else  nombre_tire () in
+      let nombre = nombre_tire () in
+      let new_liste_avion_tire = nombre::liste_avion_tire in
+      let liste_avion_tire = new_liste_avion_tire in
+      let plane = List.nth liste_avion nombre in
+      let avion = ref Accel.a319 in
+      let masse = ref 0. in
+      begin
+	match plane.Map.flight_category with
+	  cat when cat = "L" ->  avion:= Accel.a319
+	|cat when cat = "M" ->  avion:= Accel.a320
+	|cat when cat = "H" ->  avion:= Accel.a321
+	|_ -> failwith "category" ;
+      end;
+      begin
+	match plane.Map.dep_arr with
+	  dep_ar when dep_ar = "DEP" -> masse := (!avion).Accel.mass_dep 
+	|dep_ar when dep_ar = "ARR" -> masse  := (!avion).Accel.mass_arri 
+	|_ -> failwith "depart_arrive" ;
+      end;
+      let new_traject = Accel.calculTrajectoireTotal  plane.Map.route !avion !masse triangulation timeSimulation in
+	 plane.Map.route <- new_traject ; 
+      trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire triangulation timeSimulation;
+    end;;
+  
+(*
 let () =
-    simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) 5;;
+  let liste_avion  =  trajectoires_altitude 1 Map.flights [] Del.listeTriangle 5. in
+();;    (* sur 1573 *)
+  (* simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,liste_avion) 5;;
  
+  *)
+*)

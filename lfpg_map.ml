@@ -22,12 +22,12 @@ type runway = {runway_marks : string list;
 
 type flight = {dep_arr : string;
 	       flight_id : string;
-	       flight_category : string;
+	       mutable flight_category : string;
 	       flight_stand : string;
 	       flight_qfu : string;
 	       h_dep : int;
 	       h_arr : int;
-	       route : point list}
+	       mutable route : point list}
 
 exception Empty
 

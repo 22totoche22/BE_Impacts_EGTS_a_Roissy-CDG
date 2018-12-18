@@ -86,12 +86,21 @@ let croise_segment pta1 ptb1 pta2 ptb2 =
       prod_vect vect_A2B2 vect_A2B1 * prod_vect vect_A2B2 vect_A2A1 <= 0;;
 
 let intersect a b c d tri =
-    let xi = (((b.Map.y-a.Map.y)/(b.Map.x-a.Map.x))*a.Map.x+a.Map.y-((d.Map.y-c.Map.y)/(d.Map.x-c.Map.x))*c.Map.x-c.Map.y)/(((b.Map.y-a.Map.y)/(b.Map.x-a.Map.x))-((d.Map.y-c.Map.y)/(d.Map.x-c.Map.x))) in
-    let yi = ((b.Map.y-a.Map.y)/(b.Map.x-a.Map.x))*((((b.Map.y-a.Map.y)/(b.Map.x-a.Map.x))*a.Map.x+a.Map.y-((d.Map.y-c.Map.y)/(d.Map.x-c.Map.x))*c.Map.x-c.Map.y)/(((b.Map.y-a.Map.y)/(b.Map.x-a.Map.x))-((d.Map.y-c.Map.y)/(d.Map.x-c.Map.x)))-a.Map.x)+a.Map.y in
-    let (i,j,k) = tri.Del.equa in
-    let zi = i *. (float xi) +. j *. (float yi) +. k in
-    let pti = {Map.x=xi; Map.y=yi; Map.z=zi} in
-    pti;;
+  let (ax,ay) = (float a.Map.x, float a.Map.y) in
+  let (bx,by) = (float b.Map.x, float b.Map.y) in
+  let (cx, cy) = (float c.Map.x, float c.Map.y) in
+  let (dx,dy) = (float d.Map.x, float d.Map.y) in
+  let x_num = ax *. (by -. ay ) /. (bx -. ax ) +. ay
+    -. cx *. (dy -. cy) /. (dx -. cx) -. cy in
+  let x_denum = (by -. ay) /. (bx -. ax) -. (dy -. cy) /. (dx -. cx) in
+  let xi = x_num /. x_denum in
+  let yi = ay +. (by -. ay ) /. (bx -. ax ) *.
+    ((by -. ay) /. (bx -. ax) *. ax +. ay -. ((dy -. cy) /. (dx -. cx)) *. cx -. cy)
+    /. ((by -. ay) /. (bx -. ax) -. ((dy -. cy)/. (dx -. cx))) -.ax in
+  let (i,j,k) = tri.Del.equa in
+  let zi = i *. xi +. j *. yi +. k in
+  let pti = {Map.x=int_of_float xi; Map.y=int_of_float yi; Map.z=zi} in
+  pti;;
   
 let croise_tri pt_dep pt_arr tri =
   let pti = ref ({Map.x=0;Map.y=0;Map.z=0.}) in
@@ -213,19 +222,21 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
 
 
 
-(*
+
 (* test à faire pour verifier les points obtenus *)
 (* a verifier avec la vision des trajectoires *)
 let p1={Map.x= -3787;Map.y=519;Map.z=0.}
-let p2={Map.x= -3799;Map.y=524;Map.z=100.}
-let p3={Map.x= -3812;Map.y=531;Map.z=200.}
-let p4={Map.x= -3825;Map.y=539;Map.z=300.}
+let p2={Map.x= -3799;Map.y=524;Map.z=0.}
+let p3={Map.x= -3812;Map.y=531;Map.z=0.}
+let p4={Map.x= -3825;Map.y=539;Map.z=0.}
 let traj=p1::p2::p3::p4::[]
 let delau = Del.listeTriangle
 let time = 5.
 let masse = a320.mass_dep
 
-let trajectoire = calculTrajectoireTotal traj a320 masse delau time;;
-
+let trajectoire = calculTrajectoireTotal traj a320 masse delau time ;; 
+let () = 
 List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Map.y i.Map.z) trajectoire;;
-*)
+
+
+
