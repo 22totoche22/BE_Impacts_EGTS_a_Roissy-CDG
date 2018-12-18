@@ -67,9 +67,9 @@ let rec event_loop x y (marks,runways,taxiways,listetriangle) hauteur_max largeu
 
 
 
-let draw_circle largeur largeur_max hauteur hauteur_max x y  = 
+let draw_circle largeur largeur_max hauteur hauteur_max x y color = 
   Graphics.set_line_width 0;
-  Graphics.set_color Graphics.blue;
+  Graphics.set_color color;
   Graphics.fill_circle x y 3;; (* on n'écrit que sur la fenetre graphique pas dans la memoire graphique *)
    
 
@@ -98,11 +98,13 @@ let draw_clock time largeur largeur_max hauteur hauteur_max =
 
 
 let move_flights points largeur largeur_max hauteur hauteur_max time= 
-Graphics.remember_mode false;(* on désactive la mémoire graphique *)
-  List.iter (fun i ->
-     
+  Graphics.remember_mode false;(* on désactive la mémoire graphique *)
+  
+  List.iter (fun (i,s) ->
+     let color = ref Graphics.blue in
     let (x,y) =  (i.Map.x,i.Map.y) in
-    draw_circle largeur largeur_max hauteur hauteur_max ((x*largeur/largeur_max)+(largeur/2)) ((y*hauteur/hauteur_max)+(hauteur/2));
+    if s = "E" then color := Graphics.yellow ;
+    draw_circle largeur largeur_max hauteur hauteur_max ((x*largeur/largeur_max)+(largeur/2)) ((y*hauteur/hauteur_max)+(hauteur/2)) !color;
   ) points;
   draw_clock time largeur largeur_max hauteur hauteur_max;
   wait 20.; (* pour voir le dessin on fait une attente, unix.sleep ne marche pas *)
