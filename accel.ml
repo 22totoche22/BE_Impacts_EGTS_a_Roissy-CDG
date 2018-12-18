@@ -115,7 +115,7 @@ let intersect a b c d tri =
 	  y := coeff_a_ab *. ( !x -. (float a.Map.x)) +. (float a.Map.y);
 	  z := i *. !x +. j *. !y +. k;
 	end
-      else
+      else (* normalement on ne peut pas entrer dans ce cas, car on vérifie avant si il y a croisement ou pas *)
 	begin
 	  x := float max_int;
 	  y := float max_int;
@@ -161,10 +161,16 @@ let bonneintersection = fun dep arriv listeDelaunay  ->
 
 (* calcul de la nouvelle vitesse a partir de 2 points connus appartenant à un même triangle *)
 (* ici calcul avec les moteurs electriques *)
-let new_speed = fun depart inter avion masse speed->
+let new_speed = fun depart inter avion masse speed ->
+  let newspeed = ref 0. in
   let distance = Pente.distance2D depart inter in
   let slope = (depart.Map.z -. inter.Map.z) /. distance in
   let nextspeed = nexspeedegts avion masse slope speed in
+  if nextspeed <= speed
+  then
+    newspeed := nextspeed
+  else
+    newspeed := speed;
   nextspeed ;;
 
 let temps2point1triangle = fun pointdep point avion masse vitesseAvant ->
