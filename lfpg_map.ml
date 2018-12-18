@@ -23,7 +23,7 @@ type runway = {runway_marks : string list;
 type flight = {dep_arr : string;
 	       flight_id : string;
 	       mutable flight_category : string;
-	       flight_stand : string;
+	       mutable flight_stand : string;
 	       flight_qfu : string;
 	       h_dep : int;
 	       h_arr : int;

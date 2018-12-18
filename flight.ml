@@ -31,9 +31,9 @@ let tl liste =
 let new_flights listeavion time  =
   List.filter (fun i -> i.Map.h_dep = time ) listeavion ;;
 
-(*renvoie les routes des avions *)
+(*renvoie les routes des avions signées*)
 let new_routes new_flights =
-  List.map (fun i -> i.Map.route ) new_flights ;;
+  List.map (fun i -> (i.Map.route,i.Map.flight_stand)) new_flights ;;
 
 (* renvoie la liste des avions de la simulation en enlevant les avions  ayant finis *)
 let enleve_avion listeavion_simulation time =
@@ -43,15 +43,15 @@ let enleve_avion listeavion_simulation time =
 let  new_trajectory route =
   let point = hd route in 
   let new_trajectoire = tl route in
-  (point,new_trajectoire);;
+  (point,new_trajectoire);; (* (point signe, liste de points signés) *)
 
 (* renvoie les trajectoires sans le premier point *)
 let new_trajectories trajectories =
-  List.map (fun route ->  let (pt,traj) = new_trajectory route in traj ) trajectories;;
+  List.map (fun (route,s) ->  let (pt,traj) = new_trajectory route in (traj,s))  trajectories;;
 
 (* renvoie les premiers points des trajectoires *)
 let new_points trajectories =
-  List.map (fun route ->  let (pt,traj) = new_trajectory route in pt) trajectories;;
+  List.map (fun (route,s) ->  let (pt,traj) = new_trajectory route in (pt,s)) trajectories;;
     
 
 (* simulation *)
@@ -70,11 +70,11 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) dt =
     then print_string "terminé"
     else
       begin
-	let newplanes = new_flights listeavion time in
-	let newroutes = new_routes newplanes in
-	let trajectoires = List.append newroutes trajectoires in (* on ajoute les nouvelles trajectoires *)
-	let points = new_points trajectoires in
-	let new_trajectoires = new_trajectories trajectoires in
+	let newplanes = new_flights listeavion time in (* liste des avions à intégrer dans la simu *)
+	let newroutes = new_routes newplanes in (* liste de (route de l'avion,signature)  *)
+	let trajectoires = List.append newroutes trajectoires in (* on ajoute les nouvelles routes *)
+	let points = new_points trajectoires in (* extraction liste des points signés à l'instant t  *)
+	let new_trajectoires = new_trajectories trajectoires in 
 	let new_avion_simulation = List.append newplanes listeavion_simulation in (* on ajoute les nouveaux avions *)
         let new2_listeavion_simulation = enleve_avion new_avion_simulation time in 
 	Visu.move_flights points largeur largeur_max hauteur hauteur_max time;
@@ -114,16 +114,15 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire triangulatio
 	|dep_ar when dep_ar = "ARR" -> masse  := (!avion).Accel.mass_arri 
 	|_ -> failwith "depart_arrive" ;
       end;
+      plane.Map.flight_stand <- "E";
       let new_traject = Accel.calculTrajectoireTotal  plane.Map.route !avion !masse triangulation timeSimulation in
-	 plane.Map.route <- new_traject ; 
+      plane.Map.route <- new_traject ;
       trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire triangulation timeSimulation;
     end;;
   
-(*
+
 let () =
-  let liste_avion  =  trajectoires_altitude 1 Map.flights [] Del.listeTriangle 5. in
-();;    (* sur 1573 *)
-  (* simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,liste_avion) 5;;
+  let liste_avion  =  trajectoires_altitude 100 Map.flights [] Del.listeTriangle 5. in    (* sur 1573 *)
+  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,liste_avion) 5;;
  
-  *)
-*)
+
