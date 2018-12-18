@@ -86,20 +86,42 @@ let croise_segment pta1 ptb1 pta2 ptb2 =
       prod_vect vect_A2B2 vect_A2B1 * prod_vect vect_A2B2 vect_A2A1 <= 0;;
 
 let intersect a b c d tri =
-  let (ax,ay) = (float a.Map.x, float a.Map.y) in
-  let (bx,by) = (float b.Map.x, float b.Map.y) in
-  let (cx, cy) = (float c.Map.x, float c.Map.y) in
-  let (dx,dy) = (float d.Map.x, float d.Map.y) in
-  let x_num = ax *. (by -. ay ) /. (bx -. ax ) +. ay
-    -. cx *. (dy -. cy) /. (dx -. cx) -. cy in
-  let x_denum = (by -. ay) /. (bx -. ax) -. (dy -. cy) /. (dx -. cx) in
-  let xi = x_num /. x_denum in
-  let yi = ay +. (by -. ay ) /. (bx -. ax ) *.
-    ((by -. ay) /. (bx -. ax) *. ax +. ay -. ((dy -. cy) /. (dx -. cx)) *. cx -. cy)
-    /. ((by -. ay) /. (bx -. ax) -. ((dy -. cy)/. (dx -. cx))) -.ax in
+  let x = ref 0. in
+  let y = ref 0. in
+  let z = ref 0. in
+  let coeff_a_ab,coeff_b_ab = Geo.equadroite a b in
+  let coeff_a_cd,coeff_b_cd = Geo.equadroite c d in
   let (i,j,k) = tri.Del.equa in
-  let zi = i *. xi +. j *. yi +. k in
-  let pti = {Map.x=int_of_float xi; Map.y=int_of_float yi; Map.z=zi} in
+  if (coeff_a_ab != (float max_int) && coeff_a_cd != (float max_int))
+  then
+    begin
+      x := ((float (d.Map.y - b.Map.y)) -. (float d.Map.x) *. coeff_a_cd +. (float b.Map.x) *. coeff_a_ab) /. ( coeff_a_ab -. coeff_a_cd );
+      y := coeff_a_ab *. ( !x -. (float a.Map.x)) +. (float a.Map.y);
+      z := i *. !x +. j *. !y +. k;
+    end
+  else
+    if (coeff_a_ab = (float max_int) && coeff_a_cd != (float max_int))
+    then
+      begin
+	x := float a.Map.x;
+	y := coeff_a_cd *. ( !x -. (float c.Map.x)) +. (float c.Map.y);
+	z := i *. !x +. j *. !y +. k;
+      end
+    else
+      if (coeff_a_ab != (float max_int) && coeff_a_cd = (float max_int))
+      then
+	begin
+	  x := float c.Map.x;
+	  y := coeff_a_ab *. ( !x -. (float a.Map.x)) +. (float a.Map.y);
+	  z := i *. !x +. j *. !y +. k;
+	end
+      else
+	begin
+	  x := float max_int;
+	  y := float max_int;
+	  z := 0.;
+	end;
+  let pti = {Map.x=int_of_float !x; Map.y=int_of_float !y; Map.z= !z} in
   pti;;
   
 let croise_tri pt_dep pt_arr tri =
@@ -132,7 +154,7 @@ let bonneintersection = fun dep arriv listeDelaunay  ->
 	then ptcorrec := pt;
 	loop reste;
   in loop listeTriangle;
-  if (!ptcorrec = ptref || !ptcorrec = ptcomparaison)
+  if (!ptcorrec = ptref || !ptcorrec = ptcomparaison || !ptcorrec = dep)
   then ptcorrec := arriv;
   (!ptcorrec);;
 
@@ -225,22 +247,155 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
 
 
 
-
+(*
 (* test à faire pour verifier les points obtenus *)
 (* a verifier avec la vision des trajectoires *)
 let p1={Map.x= -3787;Map.y=519;Map.z=0.}
+let p5={Map.x= -3787;Map.y=519;Map.z=0.}
 let p2={Map.x= -3799;Map.y=524;Map.z=0.}
 let p3={Map.x= -3812;Map.y=531;Map.z=0.}
 let p4={Map.x= -3825;Map.y=539;Map.z=0.}
-let traj=p1::p2::p3::p4::[]
+let traj=p1::p5::p5::p5::p5::p2::p2::p2::p2::p3::p4::[]
+
+let trajet = [ 
+  {Map.x = -738 ; y = 493 ; z =0.000000}; 
+{Map.x = -750 ; y = 500 ; z =0.000000}; 
+{Map.x = -764 ; y = 508 ; z =0.000000}; 
+{Map.x = -777 ; y = 514 ; z =0.000000}; 
+{Map.x = -790 ; y = 521 ; z =0.000000}; 
+{Map.x = -803 ; y = 528 ; z =0.000000}; 
+{Map.x = -816 ; y = 536 ; z =0.000000}; 
+{Map.x = -828 ; y = 545 ; z =0.000000}; 
+{Map.x = -838 ; y = 556 ; z =0.000000}; 
+{Map.x = -846 ; y = 568 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000};
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 583 ; z =0.000000}; 
+{Map.x = -850 ; y = 533 ; z =0.000000}; 
+{Map.x = -847 ; y = 483 ; z =0.000000}; 
+{Map.x = -840 ; y = 438 ; z =0.000000}; 
+{Map.x = -829 ; y = 395 ; z =0.000000}; 
+{Map.x = -812 ; y = 353 ; z =0.000000}; 
+{Map.x = -793 ; y = 313 ; z =0.000000}; 
+{Map.x = -771 ; y = 279 ; z =0.000000}; 
+{Map.x = -744 ; y = 250 ; z =0.000000}; 
+{Map.x = -711 ; y = 228 ; z =0.000000}; 
+{Map.x = -672 ; y = 218 ; z =0.000000}; 
+{Map.x = -632 ; y = 216 ; z =0.000000}; 
+{Map.x = -592 ; y = 219 ; z =0.000000}; 
+{Map.x = -553 ; y = 223 ; z =0.000000}; 
+{Map.x = -503 ; y = 228 ; z =0.000000}; 
+{Map.x = -454 ; y = 233 ; z =0.000000};
+{Map.x = -404 ; y = 238 ; z =0.000000}; 
+{Map.x = -354 ; y = 243 ; z =0.000000}; 
+{Map.x = -304 ; y = 248 ; z =0.000000}; 
+{Map.x = -254 ; y = 253 ; z =0.000000}; 
+{Map.x = -204 ; y = 257 ; z =0.000000}; 
+{Map.x = -154 ; y = 261 ; z =0.000000}; 
+{Map.x = -105 ; y = 265 ; z =0.000000};
+{Map.x = -55 ; y = 270 ; z =0.000000}; 
+{Map.x = -5 ; y = 276 ; z =0.000000}; 
+{Map.x = 27 ; y = 289 ; z =0.000000};
+{Map.x = 51 ; y = 313 ; z =0.000000};
+{Map.x = 73 ; y = 340 ; z =0.000000}; 
+{Map.x = 87 ; y = 376 ; z =0.000000}; 
+{Map.x = 99 ; y = 415 ; z =0.000000};
+{Map.x = 102 ; y = 455 ; z =0.000000}; 
+{Map.x = 96 ; y = 494 ; z =0.000000}; 
+{Map.x = 89 ; y = 544 ; z =0.000000}; 
+{Map.x = 85 ; y = 594 ; z =0.000000}; 
+{Map.x = 80 ; y = 644 ; z =0.000000}; 
+{Map.x = 76 ; y = 694 ; z =0.000000}; 
+{Map.x = 72 ; y = 744 ; z =0.000000}; 
+{Map.x = 68 ; y = 794 ; z =0.000000}; 
+{Map.x = 63 ; y = 844 ; z =0.000000}; 
+{Map.x = 60 ; y = 894 ; z =0.000000}; 
+{Map.x = 55 ; y = 943 ; z =0.000000}; 
+{Map.x = 49 ; y = 993 ; z =0.000000}; 
+{Map.x = 44 ; y = 1043 ; z =0.000000}; 
+{Map.x = 42 ; y = 1083 ; z =0.000000}; 
+{Map.x = 47 ; y = 1102 ; z =0.000000}; 
+{Map.x = 55 ; y = 1121 ; z =0.000000}; 
+{Map.x = 70 ; y = 1147 ; z =0.000000}; 
+{Map.x = 94 ; y = 1164 ; z =0.000000}; 
+{Map.x = 123 ; y = 1169 ; z =0.000000}; 
+{Map.x = 153 ; y = 1172 ; z =0.000000}; 
+{Map.x = 198 ; y = 1179 ; z =0.000000}; 
+{Map.x = 243 ; y = 1186 ; z =0.000000}; 
+{Map.x = 288 ; y = 1192 ; z =0.000000}; 
+{Map.x = 338 ; y = 1196 ; z =0.000000}; 
+{Map.x = 388 ; y = 1199 ; z =0.000000}; 
+{Map.x = 438 ; y = 1203 ; z =0.000000}; 
+{Map.x = 488 ; y = 1207 ; z =0.000000}; 
+{Map.x = 538 ; y = 1212 ; z =0.000000}; 
+{Map.x = 588 ; y = 1220 ; z =0.000000}; 
+{Map.x = 633 ; y = 1227 ; z =0.000000}; 
+{Map.x = 678 ; y = 1232 ; z =0.000000}; 
+{Map.x = 723 ; y = 1233 ; z =0.000000}; 
+{Map.x = 768 ; y = 1232 ; z =0.000000}; 
+{Map.x = 813 ; y = 1234 ; z =0.000000}; 
+{Map.x = 856 ; y = 1244 ; z =0.000000}; 
+{Map.x = 873 ; y = 1263 ; z =0.000000}; 
+{Map.x = 877 ; y = 1288 ; z =0.000000}; 
+{Map.x = 876 ; y = 1313 ; z =0.000000}; 
+{Map.x = 874 ; y = 1338 ; z =0.000000}; 
+{Map.x = 870 ; y = 1388 ; z =0.000000}; 
+{Map.x = 864 ; y = 1438 ; z =0.000000}; 
+{Map.x = 856 ; y = 1461 ; z =0.000000}; 
+{Map.x = 839 ; y = 1478 ; z =0.000000}; 
+{Map.x = 814 ; y = 1485 ; z =0.000000}; 
+{Map.x = 807 ; y = 1485 ; z =0.000000}; 
+{Map.x = 784 ; y = 1484 ; z =0.000000}; 
+{Map.x = 714 ; y = 1478 ; z =0.000000}; 
+{Map.x = 598 ; y = 1468 ; z =0.000000}; 
+{Map.x = 435 ; y = 1454 ; z =0.000000}; 
+{Map.x = 226 ; y = 1436 ; z =0.000000}; 
+{Map.x = -31 ; y = 1414 ; z =0.000000}; 
+{Map.x = -333 ; y = 1389 ; z =0.000000}; 
+{Map.x = -682 ; y = 1359 ; z =0.000000}; 
+{Map.x = -1078 ; y = 1326 ; z =0.000000}; 
+{Map.x = -1520 ; y = 1288 ; z =0.000000}; 
+{Map.x = -2009 ; y = 1247 ; z =0.000000}; 
+{Map.x = -2545 ; y = 1201 ; z =0.000000}; ]
+  
+(*
+let trajet = [{Map.x = 51 ; y = 313 ; z =0.000000};
+{Map.x = 73 ; y = 340 ; z =0.000000}; 
+{Map.x = 87 ; y = 376 ; z =0.000000};
+{Map.x = 99 ; y = 415 ; z =0.000000};
+{Map.x = 102 ; y = 455 ; z =0.000000}; ]
+  *)
+
+let point1 = {Map.x = 51 ; y = 313 ; z =104.3}
+let point2 = {Map.x = 73 ; y = 340 ; z =104.2}
+(*
+let trajet = point1::point2::[]
+  *)
 let delau = Pivot.triangle_equa 
 let time = 5.
-let masse = a320.mass_dep;;
-let trajectoire = calculTrajectoireTotal traj a320 masse delau time ;; 
+let masse = a320.mass_dep
+
+let trajectoire = calculTrajectoireTotal trajet a320 masse delau time ;;
+
+
 let () =
-  
 List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Map.y i.Map.z) trajectoire;;
 
-
-
+*)
 
