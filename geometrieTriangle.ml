@@ -23,12 +23,14 @@ let equadroite = fun pointA pointB ->
 let produit_vectoriel (abx,aby) (bcx,bcy) =
   abx * bcy - aby * bcx;;
 
+(*
 let point_test =  {Map.x = 2; Map.y = 1 ; Map.z =0. }
 let triangle_test = {Del.p1 = {Map.x = 1; Map.y=1 ; Map.z=0. };
 		 Del.p2 = {Map.x = 2; Map.y= 5; Map.z= 0.};
 		 Del.p3 = {Map.x = 5; Map.y=1 ; Map.z=1. };
 		 Del.equa = (0.,0.,0.)
 		} 
+*)
   
  (* return True si le point est dans le triangle *)
 let point_dans_triangle point_m triangle_abc =
@@ -66,7 +68,6 @@ let dansQuelTriangle = fun point listeTriangles ->
   in loop listeTriangles [] ;;
 
 
-
 (* il faut une fonction pour recuperer les coeffs d'une droite
 let coeffDroite = fun point1 point2 -> 
  attention cas x1 = x2 !*)
@@ -97,20 +98,20 @@ let intersecSegCercle = fun point1 point2 distance ->
       begin
 	if (point2.Map.x > point1.Map.x)
 	then
-	  x3 := (float point1.Map.x) +. distance /. (sqrt (1. +. coeffdroite *. coeffdroite))
+	  begin
+	    x3 := (float point1.Map.x) +. distance /. (sqrt (1. +. coeffdroite *. coeffdroite));
+	    y3 := coeffdroite *. distance /. (sqrt (1. +. coeffdroite *. coeffdroite)) +. (float point1.Map.y);
+	    z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.x - point1.Map.x)) *. (!x3 -. (float point1.Map.x)) +. point1.Map.z;
+	  end
 	else
-	  x3 := (float point1.Map.x) -. distance /. (sqrt (1. +. coeffdroite *. coeffdroite));
-	if (point2.Map.y >= point1.Map.y)
-	then
-	  y3 := coeffdroite *. distance /. (sqrt (1. +. coeffdroite *. coeffdroite)) +. (float point1.Map.y)
-	else
-	  y3 := (float point1.Map.y) -. coeffdroite *. distance /. (sqrt (1. +. coeffdroite *. coeffdroite));
-	z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.x - point1.Map.x)) *. (!x3 -. (float point1.Map.x)) +. point1.Map.z; 
+	  begin
+	    x3 := (float point1.Map.x) -. distance /. (sqrt (1. +. coeffdroite *. coeffdroite));
+	    y3 := (float point1.Map.y) -. coeffdroite *. distance /. (sqrt (1. +. coeffdroite *. coeffdroite));
+	    z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.x - point1.Map.x)) *. (!x3 -. (float point1.Map.x)) +. point1.Map.z;
+	  end;
       end;
   end;
   {Map.x= int_of_float (!x3);Map.y= int_of_float (!y3);Map.z= (!z3)};;
-
-
 
 (*
 let () =
