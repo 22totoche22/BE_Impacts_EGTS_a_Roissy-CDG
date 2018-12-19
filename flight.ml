@@ -55,7 +55,7 @@ let new_points trajectories =
     
 
 (* simulation *)
-let simulation (marks,runways,taxiways,listetriangle,listeavion) dt =
+let simulation (marks,runways,taxiways,listetriangle,listeavion) dt vitesse=
   Graphics.open_graph("");
   let (largeur, hauteur) = (1200,800) in
   Graphics.resize_window largeur hauteur;
@@ -77,7 +77,7 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) dt =
 	let new_trajectoires = new_trajectories trajectoires in 
 	let new_avion_simulation = List.append newplanes listeavion_simulation in (* on ajoute les nouveaux avions *)
         let new2_listeavion_simulation = enleve_avion new_avion_simulation time in 
-	Visu.move_flights points largeur largeur_max hauteur hauteur_max time;
+	Visu.move_flights points largeur largeur_max hauteur hauteur_max time vitesse;
 	let new_time = time + dt in
 	simu new_time new2_listeavion_simulation new_trajectoires end in
   simu debut_time  debut_listeavion_simulation debut_trajectoires;
@@ -121,8 +121,11 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire triangulatio
     end;;
   
 
+
+
 let () =
+  
   let liste_avion  =  trajectoires_altitude 100 Map.flights [] Del.listeTriangle 5. in    (* sur 1573 *)
-  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,liste_avion) 5;;
+  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,liste_avion) 5 20.;;
  
 
