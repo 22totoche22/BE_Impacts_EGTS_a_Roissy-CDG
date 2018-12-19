@@ -75,17 +75,18 @@ let prod_vect vect_A1B1 vect_A2B2 =
 	vect_A1B1.x * vect_A2B2.y - vect_A2B2.x * vect_A1B1.y;;
  
 let croise_segment pta1 ptb1 pta2 ptb2 =
-  let vect_A1B1 = {x=pta1.Map.x-ptb1.Map.x; y=pta1.Map.y-ptb1.Map.y} in
-  let vect_A2B2 = {x=pta2.Map.x-ptb2.Map.x; y=pta2.Map.y-ptb2.Map.y} in
-  let vect_A1B2 = {x=pta1.Map.x-ptb2.Map.x; y=pta1.Map.y-ptb2.Map.y} in
-  let vect_A1A2 = {x=pta1.Map.x-pta2.Map.x; y=pta1.Map.y-pta2.Map.y} in
-  let vect_A2B1 = {x=pta2.Map.x-ptb1.Map.x; y=pta2.Map.y-ptb1.Map.y} in
-  let vect_A2A1 = {x=pta2.Map.x-pta1.Map.x; y=pta2.Map.y-pta1.Map.y} in
+  let vect_A1B1 = {x=ptb1.Map.x-pta1.Map.x; y=ptb1.Map.y-pta1.Map.y} in
+  let vect_A2B2 = {x=ptb2.Map.x-pta2.Map.x; y=ptb2.Map.y-pta2.Map.y} in
+  let vect_A1B2 = {x=ptb2.Map.x-pta1.Map.x; y=ptb2.Map.y-pta1.Map.y} in
+  let vect_A1A2 = {x=pta2.Map.x-pta1.Map.x; y=pta2.Map.y-pta1.Map.y} in
+  let vect_A2B1 = {x=ptb1.Map.x-pta2.Map.x; y=ptb1.Map.y-pta2.Map.y} in
+  let vect_A2A1 = {x=pta1.Map.x-pta2.Map.x; y=pta1.Map.y-pta2.Map.y} in
   prod_vect vect_A1B1 vect_A2B2 != 0 &&
       prod_vect vect_A1B1 vect_A1B2 * prod_vect vect_A1B1 vect_A1A2 <= 0 &&
       prod_vect vect_A2B2 vect_A2B1 * prod_vect vect_A2B2 vect_A2A1 <= 0;;
 
 let intersect a b c d tri =
+  let pti = ref {Map.x = max_int; Map.y = max_int; Map.z = 0.} in
   let x = ref 0. in
   let y = ref 0. in
   let z = ref 0. in
@@ -98,6 +99,7 @@ let intersect a b c d tri =
       x := ((float (d.Map.y - b.Map.y)) -. (float d.Map.x) *. coeff_a_cd +. (float b.Map.x) *. coeff_a_ab) /. ( coeff_a_ab -. coeff_a_cd );
       y := coeff_a_ab *. ( !x -. (float a.Map.x)) +. (float a.Map.y);
       z := i *. !x +. j *. !y +. k;
+      pti := {Map.x=int_of_float !x; Map.y=int_of_float !y; Map.z= !z};
     end
   else
     if (coeff_a_ab = (float max_int) && coeff_a_cd != (float max_int))
@@ -106,6 +108,7 @@ let intersect a b c d tri =
 	x := float a.Map.x;
 	y := coeff_a_cd *. ( !x -. (float c.Map.x)) +. (float c.Map.y);
 	z := i *. !x +. j *. !y +. k;
+	pti := {Map.x=int_of_float !x; Map.y=int_of_float !y; Map.z= !z};
       end
     else
       if (coeff_a_ab != (float max_int) && coeff_a_cd = (float max_int))
@@ -114,28 +117,22 @@ let intersect a b c d tri =
 	  x := float c.Map.x;
 	  y := coeff_a_ab *. ( !x -. (float a.Map.x)) +. (float a.Map.y);
 	  z := i *. !x +. j *. !y +. k;
-	end
-      else (* normalement on ne peut pas entrer dans ce cas, car on vérifie avant si il y a croisement ou pas *)
-	begin
-	  x := float max_int;
-	  y := float max_int;
-	  z := 0.;
+	  pti := {Map.x=int_of_float !x; Map.y=int_of_float !y; Map.z= !z};
 	end;
-  let pti = {Map.x=int_of_float !x; Map.y=int_of_float !y; Map.z= !z} in
-  pti;;
+  !pti;;
   
 let croise_tri pt_dep pt_arr tri =
   let pti = ref ({Map.x= max_int;Map.y= max_int;Map.z=0.}) in
   if not (Geo.point_dans_triangle pt_arr tri)
   then
     begin
-      pti := {Map.x= max_int;Map.y= max_int;Map.z=1.0};
+      pti := {Map.x= max_int;Map.y= max_int;Map.z=1.};
       if croise_segment tri.Del.p1 tri.Del.p2 pt_dep pt_arr
       then pti := intersect tri.Del.p1 tri.Del.p2 pt_dep pt_arr tri;
-      if croise_segment tri.Del.p2 tri.Del.p3 pt_dep pt_arr
-      then pti := intersect tri.Del.p2 tri.Del.p3 pt_dep pt_arr tri;
       if croise_segment tri.Del.p1 tri.Del.p3 pt_dep pt_arr
       then pti := intersect tri.Del.p1 tri.Del.p3 pt_dep pt_arr tri;
+      if croise_segment tri.Del.p2 tri.Del.p3 pt_dep pt_arr
+      then pti := intersect tri.Del.p2 tri.Del.p3 pt_dep pt_arr tri;
     end;
   (!pti);;
 
@@ -143,7 +140,7 @@ let croise_tri pt_dep pt_arr tri =
 let bonneintersection = fun dep arriv listeDelaunay  ->
   let listeTriangle = Geo.dansQuelTriangle dep listeDelaunay in
   let ptcorrec = ref ({Map.x= max_int;Map.y= max_int;Map.z= 0.}) in
-  let ptcomparaison = {Map.x= max_int;Map.y= max_int ;Map.z=1.0} in
+  let ptcomparaison = {Map.x= max_int;Map.y= max_int ;Map.z=1.} in
   let ptref = {Map.x= max_int;Map.y= max_int;Map.z=0.} in
   let rec loop = fun listeTriangle ->
     match listeTriangle with
@@ -161,9 +158,10 @@ let bonneintersection = fun dep arriv listeDelaunay  ->
 
 (* calcul de la nouvelle vitesse a partir de 2 points connus appartenant à un même triangle *)
 (* ici calcul avec les moteurs electriques *)
+(* il faudra ajouter la fonction d'appel de calcul de vitesse selon si c'est elec ou non*)
 let new_speed = fun depart inter avion masse speed ->
   let newspeed = ref 0. in
-  let distance = Pente.distance2D depart inter in
+  let distance = Pente.distance3D depart inter in
   let slope = (depart.Map.z -. inter.Map.z) /. distance in
   let nextspeed = nexspeedegts avion masse slope speed in
   if nextspeed <= speed
