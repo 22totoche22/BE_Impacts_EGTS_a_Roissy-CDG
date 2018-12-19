@@ -4,7 +4,7 @@ module Flight = Flight
 module Accel = Accel
 
 let listeVolsCourrants = fun listFlights currentTime ->
-	Flight.new_flights listFlights currentTime;;
+	List.filter (fun i -> i.Map.h_dep = currentTime ) listFlights ;;
 
 (* fun detectionConflits : *)
 (* tous les vols avancent de 5s 
@@ -115,20 +115,27 @@ let supprFlights = fun listeAv currentTime ->
 	suppr queue
   in suppr (!listeAv);;
 
-(*)
+
 let backtrack = fun listFlights currentTime plane masse triangulation ->
   let listeConflits = ref [] in
   let conflit = ref false in
   let listeVols = ref [] in
   
-  let rec loop = fun listeVols currentTime ->
-(*ERREUR*)  	listeVols := listeVolsCourrants listFlights currentTime; (*ERREUR*)
-(*ERREUR*)  	listeConflits, conflit := (detectionConflits (!conflit) listeVols (!listeConflits) currentTime);
-(*ERREUR*)  	match (!conflit) with
-(*ERREUR*) 	  false -> ()
-(*ERREUR*) 	| true -> correctionConflits (!listeConflits) listeVols currentTime plane masse triangulation;
-(*ERREUR*)  supprFlights listeVols currentTime;
-(*ERREUR*)   loop listeVols (currentTime + 5)
+  let rec loop = fun listeFlights currentTime ->
+  	listeVols := listeVolsCourrants (!listFlights) currentTime;
+  	let (listeConflits, conflit) = detectionConflits conflit (!listeVols) listeConflits currentTime in
+  	match (!conflit) with
+ 		  false -> ()
+ 		| true -> correctionConflits (!listeConflits) (!listeVols) currentTime plane masse triangulation;
+  	supprFlights listeVols currentTime;
+   	loop listeVols (currentTime + 5)
       
   in loop listFlights 0;;
-*)
+
+(*A modifier :
+	- detecter le type d'avion et sa masse directement dans le type flight
+	- limiter la profondeur de calcul de la nouvelle traj dans la fonction recalcul traj (/!\ a ce que les la nouvelle traj soit bien continue))
+
+debut de test a modifier :
+let list_of_flights = read_file_flights "lfpg_flights.txt" in
+let backtrack list_of_flights 0 Accel.a320 Accel.a320.mass_dep triangulation*)
