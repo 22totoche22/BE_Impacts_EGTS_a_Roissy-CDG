@@ -108,7 +108,7 @@ let intersect a b c d tri =
 	x := float a.Map.x;
 	y := coeff_a_cd *. ( !x -. (float c.Map.x)) +. (float c.Map.y);
 	z := i *. !x +. j *. !y +. k;
-	pti := {Map.x=int_of_float !x; Map.y=int_of_float !y; Map.z= !z};
+	pti := {Map.x= a.Map.x; Map.y=int_of_float !y; Map.z= !z};
       end
     else
       if (coeff_a_ab != (float max_int) && coeff_a_cd = (float max_int))
@@ -117,8 +117,10 @@ let intersect a b c d tri =
 	  x := float c.Map.x;
 	  y := coeff_a_ab *. ( !x -. (float a.Map.x)) +. (float a.Map.y);
 	  z := i *. !x +. j *. !y +. k;
-	  pti := {Map.x=int_of_float !x; Map.y=int_of_float !y; Map.z= !z};
-	end;
+	  pti := {Map.x= c.Map.x; Map.y=int_of_float !y; Map.z= !z};
+	end
+      else
+	Printf.printf "coucou\n";
   !pti;;
   
 let croise_tri pt_dep pt_arr tri =
@@ -169,7 +171,7 @@ let new_speed = fun depart inter avion masse speed ->
     newspeed := nextspeed
   else
     newspeed := speed;
-  nextspeed ;;
+  !newspeed ;;
 
 let temps2point1triangle = fun pointdep point avion masse vitesseAvant ->
   let vitesseElec = new_speed pointdep point avion masse vitesseAvant  in
@@ -208,6 +210,7 @@ let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangu
 	      let pointAgarder = distanceParcourue point1 pointintersec (timeSimulation -. (!compteurTempsA5s)) avion masse vitesseNoElec in
 	      listePointAGarder := List.append (!listePointAGarder) (pointAgarder::[]);
 	      compteurTempsA5s := (!newCompteur) -. timeSimulation;
+	      Printf.printf "compteura5s %f newcompteur %f\n" !compteurTempsA5s !newCompteur;
 	    end
 	  else
 	    compteurTempsA5s := (!newCompteur);
@@ -247,11 +250,12 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
 	trajectoireElectrique := List.append (!trajectoireElectrique) listeAajouter;
 	loop (pointarriv::reste);
   in loop trajectoireInitiale;
+  
   (!trajectoireElectrique);;
 
 
 
-(*
+
 (* test à faire pour verifier les points obtenus *)
 (* a verifier avec la vision des trajectoires *)
 let p1={Map.x= -3787;Map.y=519;Map.z=0.}
@@ -400,6 +404,3 @@ let trajectoire = calculTrajectoireTotal trajet a320 masse delau time ;;
 
 let () =
 List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Map.y i.Map.z) trajectoire;;
-
-*)
-
