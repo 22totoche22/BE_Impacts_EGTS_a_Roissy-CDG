@@ -236,6 +236,9 @@ let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangu
 	end;
 	loop pointintersec;
   in loop pointdep;
+  if (pointdep = pointarriv)
+  then
+    vitesseAvant := 0.;
   (!listePointAGarder);;
 
 let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation timeSimulation flight_stand ->
