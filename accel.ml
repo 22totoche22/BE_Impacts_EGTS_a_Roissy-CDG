@@ -93,7 +93,7 @@ let intersect a b c d tri =
   let coeff_a_ab,coeff_b_ab = Geo.equadroite a b in
   let coeff_a_cd,coeff_b_cd = Geo.equadroite c d in
   let (i,j,k) = tri.Del.equa in
-  if (coeff_a_ab != (float max_int) && coeff_a_cd != (float max_int))
+  if (coeff_a_ab != infinity && coeff_a_cd != infinity)
   then
     begin
       x := ((float (d.Map.y - b.Map.y)) -. (float d.Map.x) *. coeff_a_cd +. (float b.Map.x) *. coeff_a_ab) /. ( coeff_a_ab -. coeff_a_cd );
@@ -102,7 +102,7 @@ let intersect a b c d tri =
       pti := {Map.x=int_of_float !x; Map.y=int_of_float !y; Map.z= !z};
     end
   else
-    if (coeff_a_ab = (float max_int) && coeff_a_cd != (float max_int))
+    if (coeff_a_ab = infinity && coeff_a_cd != infinity)
     then
       begin
 	x := float a.Map.x;
@@ -111,16 +111,14 @@ let intersect a b c d tri =
 	pti := {Map.x= a.Map.x; Map.y=int_of_float !y; Map.z= !z};
       end
     else
-      if (coeff_a_ab != (float max_int) && coeff_a_cd = (float max_int))
+      if (coeff_a_ab != infinity && coeff_a_cd = infinity)
       then
 	begin
 	  x := float c.Map.x;
 	  y := coeff_a_ab *. ( !x -. (float a.Map.x)) +. (float a.Map.y);
 	  z := i *. !x +. j *. !y +. k;
 	  pti := {Map.x= c.Map.x; Map.y=int_of_float !y; Map.z= !z};
-	end
-      else
-	Printf.printf "coucou\n";
+	end;
   !pti;;
   
 let croise_tri pt_dep pt_arr tri =
@@ -130,11 +128,14 @@ let croise_tri pt_dep pt_arr tri =
     begin
       pti := {Map.x= max_int;Map.y= max_int;Map.z=1.};
       if croise_segment tri.Del.p1 tri.Del.p2 pt_dep pt_arr
-      then pti := intersect tri.Del.p1 tri.Del.p2 pt_dep pt_arr tri;
+      then
+	  pti := intersect tri.Del.p1 tri.Del.p2 pt_dep pt_arr tri;
       if croise_segment tri.Del.p1 tri.Del.p3 pt_dep pt_arr
-      then pti := intersect tri.Del.p1 tri.Del.p3 pt_dep pt_arr tri;
+      then
+	  pti := intersect tri.Del.p1 tri.Del.p3 pt_dep pt_arr tri;
       if croise_segment tri.Del.p2 tri.Del.p3 pt_dep pt_arr
-      then pti := intersect tri.Del.p2 tri.Del.p3 pt_dep pt_arr tri;
+       then
+	  pti := intersect tri.Del.p2 tri.Del.p3 pt_dep pt_arr tri;
     end;
   (!pti);;
 
@@ -161,26 +162,29 @@ let bonneintersection = fun dep arriv listeDelaunay  ->
 (* calcul de la nouvelle vitesse a partir de 2 points connus appartenant à un même triangle *)
 (* ici calcul avec les moteurs electriques *)
 (* il faudra ajouter la fonction d'appel de calcul de vitesse selon si c'est elec ou non*)
-let new_speed = fun depart inter avion masse speed ->
+let new_speed = fun depart inter avion masse speedavant speedmax ->
   let newspeed = ref 0. in
   let distance = Pente.distance3D depart inter in
   let slope = (depart.Map.z -. inter.Map.z) /. distance in
-  let nextspeed = nexspeedegts avion masse slope speed in
-  if nextspeed <= speed
+  let nextspeed = nexspeedegts avion masse slope speedavant in
+  if nextspeed <= speedmax
   then
     newspeed := nextspeed
   else
-    newspeed := speed;
+    newspeed := speedmax;
+  if speedmax >= 50. (* on est certainement sur la piste en train d'accelerer ou de décelerer *)
+  then
+    newspeed := speedmax;
   !newspeed ;;
 
-let temps2point1triangle = fun pointdep point avion masse vitesseAvant ->
-  let vitesseElec = new_speed pointdep point avion masse vitesseAvant  in
+let temps2point1triangle = fun pointdep point avion masse vitesseAvant vitesseMax ->
+  let vitesseElec = new_speed pointdep point avion masse vitesseAvant vitesseMax  in
   let distance = Pente.distance3D pointdep point in
   let timeElect = distance /. vitesseElec in
   timeElect;;
 
-let distanceParcourue = fun pointdep point temps avion masse vitesseAvant ->
-  let vitesseElec = new_speed pointdep point avion masse vitesseAvant  in
+let distanceParcourue = fun pointdep point temps avion masse vitesseAvant vitesseMax ->
+  let vitesseElec = new_speed pointdep point avion masse vitesseAvant vitesseMax in
   let distanceAparcourir = vitesseElec *. temps in
   let pointAGarder = Geo.intersecSegCercle pointdep point distanceAparcourir in
    pointAGarder;;
@@ -192,28 +196,36 @@ let calculAltitudePoint = fun point triangulation ->
     | triangle::reste -> Pente.altitudePoint point triangle;;
 
   
-let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation ->
+let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant ->
   let listePointAGarder = ref [] in
-  let newCompteur =  ref 0.  in
   let vitesseNoElec = Pente.vitesse_5s_3d pointdep pointarriv in
   let rec loop = fun point1 ->
     match point1 with
       | a when a = pointarriv -> ()
       | _ ->
 	let pointintersec = bonneintersection point1 pointarriv triangulation in
-	let timeIntersec = temps2point1triangle point1 pointintersec avion masse vitesseNoElec in
+	let timeIntersec = temps2point1triangle point1 pointintersec avion masse !vitesseAvant vitesseNoElec in
 	begin
-	  newCompteur := (!compteurTempsA5s) +. timeIntersec;
-	  if ((!newCompteur) >= timeSimulation)
-	  then
-	    begin
-	      let pointAgarder = distanceParcourue point1 pointintersec (timeSimulation -. (!compteurTempsA5s)) avion masse vitesseNoElec in
-	      listePointAGarder := List.append (!listePointAGarder) (pointAgarder::[]);
-	      compteurTempsA5s := (!newCompteur) -. timeSimulation;
-	      Printf.printf "compteura5s %f newcompteur %f\n" !compteurTempsA5s !newCompteur;
-	    end
-	  else
-	    compteurTempsA5s := (!newCompteur);
+	  compteurTempsA5s := (!compteurTempsA5s) +. timeIntersec;
+	  let rec loopTantQueCompteurSup5 = fun compteurSup pointGarde ->
+	    match compteurSup with
+	      | a when a < timeSimulation -> compteurTempsA5s := a;
+	      | compteur when compteur >= timeSimulation && compteur < (2. *. timeSimulation) ->
+		let pointAgarder = distanceParcourue pointGarde pointintersec (compteur -. timeSimulation) avion masse !vitesseAvant vitesseNoElec in
+		begin
+		  listePointAGarder := List.append (!listePointAGarder) (pointAgarder::[]);
+		  compteurTempsA5s := compteur -. timeSimulation;
+		  vitesseAvant := new_speed pointGarde pointintersec avion masse !vitesseAvant vitesseNoElec;
+		end;
+	      | compteur ->
+		let pointAGarder = distanceParcourue pointGarde pointintersec timeSimulation avion masse !vitesseAvant vitesseNoElec in
+		begin
+		  listePointAGarder := List.append (!listePointAGarder) (pointAGarder::[]);
+		 compteurTempsA5s := compteur -. timeSimulation;
+		  vitesseAvant := new_speed pointGarde pointintersec avion masse !vitesseAvant vitesseNoElec;
+		end;
+		loopTantQueCompteurSup5 (compteur -. timeSimulation) pointAGarder;
+	  in loopTantQueCompteurSup5 !compteurTempsA5s point1;
 	end;
 	loop pointintersec;
   in loop pointdep;
@@ -222,6 +234,7 @@ let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangu
 let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation timeSimulation ->
   let compteurTempsA5s = ref 0. in
   let trajectoireElectrique = ref [] in
+  let vitesseAvant = ref 0. in
   begin
   match trajectoireInitiale with
     | [] -> ()
@@ -246,7 +259,7 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
 	let depAlti = {Map.x = pointdep.Map.x; Map.y = pointdep.Map.y; Map.z = zdep} in
 	let zarr  = calculAltitudePoint pointarriv triangulation in
 	let arrAlti = {Map.x = pointarriv.Map.x; Map.y = pointarriv.Map.y; Map.z = zarr} in
-	let listeAajouter = calculTrajectoireEntre2points depAlti arrAlti avion masse triangulation compteurTempsA5s timeSimulation in
+	let listeAajouter = calculTrajectoireEntre2points depAlti arrAlti avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant in
 	trajectoireElectrique := List.append (!trajectoireElectrique) listeAajouter;
 	loop (pointarriv::reste);
   in loop trajectoireInitiale;
@@ -254,7 +267,7 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
   (!trajectoireElectrique);;
 
 
-
+(*
 
 (* test à faire pour verifier les points obtenus *)
 (* a verifier avec la vision des trajectoires *)
@@ -404,3 +417,5 @@ let trajectoire = calculTrajectoireTotal trajet a320 masse delau time ;;
 
 let () =
 List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Map.y i.Map.z) trajectoire;;
+
+*)
