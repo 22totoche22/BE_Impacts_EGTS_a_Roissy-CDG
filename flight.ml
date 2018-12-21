@@ -95,7 +95,7 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire triangulatio
 	let n = Random.int size in
 	if not (List.mem n liste_avion_tire) then n
 	else  nombre_tire () in
-      let nombre = nombre_tire () in
+      let nombre = nombre_tire() in
       let new_liste_avion_tire = nombre::liste_avion_tire in
       let liste_avion_tire = new_liste_avion_tire in
       let plane = List.nth liste_avion nombre in
@@ -115,7 +115,7 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire triangulatio
 	|_ -> failwith "depart_arrive" ;
       end;
       plane.Map.flight_stand <- "E";
-      let new_traject = Accel.calculTrajectoireTotal  plane.Map.route !avion !masse triangulation timeSimulation in
+      let new_traject = Accel.calculTrajectoireTotal  plane.Map.route !avion !masse triangulation timeSimulation plane.Map.flight_stand in
       plane.Map.route <- new_traject ;
       trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire triangulation timeSimulation;
     end;;
@@ -126,6 +126,6 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire triangulatio
 let () =
   
   let liste_avion  =  trajectoires_altitude 100 Map.flights [] Del.listeTriangle 5. in    (* sur 1573 *)
-  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,liste_avion) 5 20.;;
+  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,liste_avion) 5 100.;;
  
 
