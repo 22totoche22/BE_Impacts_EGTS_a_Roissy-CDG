@@ -14,7 +14,7 @@ let equadroite = fun pointA pointB ->
     end
   else
     begin(* attention a ne servira pas dans ce cas la *)
-      a := float (max_int);
+      a := infinity;
       b := float pointB.Map.x;
     end;
   !a,!b;;
