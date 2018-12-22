@@ -7,7 +7,7 @@ let minimum = fun x1 x2 x3 y1 y2 y3->
   then
     x1,y1
   else
-    if (x2 <= x1 && x2 <= x1)
+    if (x2 <= x1 && x2 <= x3)
     then
       x2,y2
     else
@@ -18,7 +18,7 @@ let maximum = fun x1 x2 x3 y1 y2 y3->
   then
     x1,y1
   else
-    if (x2 >= x1 && x2 >= x1)
+    if (x2 >= x1 && x2 >= x3)
     then
       x2,y2
     else
