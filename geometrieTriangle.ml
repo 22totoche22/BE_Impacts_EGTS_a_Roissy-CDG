@@ -2,24 +2,26 @@ module Map = Lfpg_map
 module Del = Delaunay
 
 
-
+(* retourne a et b tel que pour la droite passant par les points A et B on a y = a * x + b *)
 let equadroite = fun pointA pointB ->
   let a = ref 0. in
   let b = ref 0. in
+  (* cas général *)
   if (pointA.Map.x != pointB.Map.x)
   then
     begin
       a :=  (float (pointB.Map.y - pointA.Map.y)) /. (float (pointB.Map.x - pointA.Map.x));
       b := (float pointB.Map.y) -. (float pointB.Map.x) *. !a;
     end
+  (* cas particulier d'une droite paralléle à l'axe des ordonnées *)
   else
-    begin(* attention a ne servira pas dans ce cas la *)
+    begin(* attention a ne servira pas dans ce cas la  *)
       a := infinity;
       b := float pointB.Map.x;
     end;
   !a,!b;;
 
-      
+(* calcul le produit vectoriel des droites ab et bc *)
 let produit_vectoriel (abx,aby) (bcx,bcy) =
   abx * bcy - aby * bcx;;
 
@@ -52,7 +54,7 @@ let point_dans_triangle point_m triangle_abc =
   let ca_cb = (produit_vectoriel  vect_ca vect_cm) * (produit_vectoriel  vect_cm vect_cb) in
   (ab_ac >= 0 && ba_bc >= 0 && ca_cb >= 0);;
 
-(* retourne la liste des triangles auquels appartient le point *)
+(* retourne la liste des triangles auquels appartient le point (>1 si c'est un sommet ou une arête *)
 let dansQuelTriangle = fun point listeTriangles ->
   let rec loop = fun listetriangle liste ->
     match listetriangle with
@@ -68,18 +70,16 @@ let dansQuelTriangle = fun point listeTriangles ->
   in loop listeTriangles [] ;;
 
 
-(* il faut une fonction pour recuperer les coeffs d'une droite
-let coeffDroite = fun point1 point2 -> 
- attention cas x1 = x2 !*)
-
-(* fonction intersection entre un segment et un cercle *)
+(* fonction intersection entre un segment et un cercle (de centre p1), retourne le point d'intersection *)
 let intersecSegCercle = fun point1 point2 distance ->
   let x3 = ref 0. in
   let y3 = ref 0. in
   let z3 = ref 0. in
   begin
+    (* cas alignement du segment avec l'axe des ordonnées *)
     if (point2.Map.x = point1.Map.x)
     then
+      (* point dans l'ordre des y croissant : p1 - pintersection - p2 *)
       if (point2.Map.y >= point1.Map.y)
       then
 	begin
@@ -87,15 +87,18 @@ let intersecSegCercle = fun point1 point2 distance ->
 	  y3 := distance +. (float  point1.Map.y);
 	  z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.y - point1.Map.y)) *. (!y3 -. (float point1.Map.y)) +. point1.Map.z; 
 	end
+      (* point dans l'ordre des y croissant : p2 - pintersection - p1 *)
       else
 	begin
 	  x3 := float point1.Map.x;
 	  y3 := (float  point1.Map.y) -. distance;
 	  z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.y - point1.Map.y)) *. (!y3 -. (float point1.Map.y)) +. point1.Map.z; 
 	end
+    (* cas général *)
     else
       let coeffdroite = (float (point2.Map.y - point1.Map.y)) /. (float (point2.Map.x - point1.Map.x)) in
       begin
+	(* cas alignement des x croissant : p1 - pintersection - p2 *)
 	if (point2.Map.x > point1.Map.x)
 	then
 	  begin
@@ -103,6 +106,7 @@ let intersecSegCercle = fun point1 point2 distance ->
 	    y3 := coeffdroite *. distance /. (sqrt (1. +. coeffdroite *. coeffdroite)) +. (float point1.Map.y);
 	    z3 := (point2.Map.z -. point1.Map.z) /. (float (point2.Map.x - point1.Map.x)) *. (!x3 -. (float point1.Map.x)) +. point1.Map.z;
 	  end
+	(* cas alignement des x croissant : p2 - pintersection - p1 *)
 	else
 	  begin
 	    x3 := (float point1.Map.x) -. distance /. (sqrt (1. +. coeffdroite *. coeffdroite));

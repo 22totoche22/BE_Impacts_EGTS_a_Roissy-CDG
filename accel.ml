@@ -16,7 +16,7 @@ type avion = {tipe : string;
 	      aerocoef : float;
 	      stepcoef : float}
 
-
+(* calcul la nouvelle vitesse de l'avion a partir de l'ancienne dans le cas d'un moteur electrique *)
 let nexspeedegts avion mass slope speed =
   let slopetorque = -. mass *. 9.81 *. sin( atan(slope /. 100.)) *. avion.tireradius in
   let restorque = ref 0. in
@@ -32,7 +32,7 @@ let nexspeedegts avion mass slope speed =
   let acc = (fun a b -> if a >= b then a else b) 0. (torque /. avion.tireradius /. mass) in
   speed +. avion.stepcoef *. acc
 						    
-
+(* calcul la nouvelle vitesse de l'avion a partir de l'ancienne dans le cas classique *)
 let nexspeedclassic speed =
   speed +. 0.9;;
 
@@ -71,9 +71,11 @@ let a321 = {tipe = "a321";
 
 type vect = {x : int; y : int};;
 
+(* calcul le produit vectoriel a partir des vecteurs des droites A1B1 et A2B2 *)
 let prod_vect vect_A1B1 vect_A2B2 =
 	vect_A1B1.x * vect_A2B2.y - vect_A2B2.x * vect_A1B1.y;;
- 
+
+(* retourne True si il existe un point d'intersection entre les 2 droites *)
 let croise_segment pta1 ptb1 pta2 ptb2 =
   let vect_A1B1 = {x=ptb1.Map.x-pta1.Map.x; y=ptb1.Map.y-pta1.Map.y} in
   let vect_A2B2 = {x=ptb2.Map.x-pta2.Map.x; y=ptb2.Map.y-pta2.Map.y} in
@@ -85,6 +87,7 @@ let croise_segment pta1 ptb1 pta2 ptb2 =
       prod_vect vect_A1B1 vect_A1B2 * prod_vect vect_A1B1 vect_A1A2 <= 0 &&
       prod_vect vect_A2B2 vect_A2B1 * prod_vect vect_A2B2 vect_A2A1 <= 0;;
 
+(* calcule le point d'intersection entre la droite ab et le coté cd du triangle englobant a *)
 let intersect a b c d tri =
   let pti = ref {Map.x = max_int; Map.y = max_int; Map.z = 0.} in
   let x = ref 0. in
@@ -120,7 +123,8 @@ let intersect a b c d tri =
 	  pti := {Map.x= c.Map.x; Map.y=int_of_float !y; Map.z= !z};
 	end;
   !pti;;
-  
+
+(* calcul le point d'intersection (ou garde l'infini) a partir d'un point de depart, du triangle entourant ce point, et d'un point d'arrivé *)
 let croise_tri pt_dep pt_arr tri =
   let pti = ref ({Map.x= max_int;Map.y= max_int;Map.z=0.}) in
   if not (Geo.point_dans_triangle pt_arr tri)
@@ -129,17 +133,18 @@ let croise_tri pt_dep pt_arr tri =
       pti := {Map.x= max_int;Map.y= max_int;Map.z=1.};
       if croise_segment tri.Del.p1 tri.Del.p2 pt_dep pt_arr
       then
-	  pti := intersect tri.Del.p1 tri.Del.p2 pt_dep pt_arr tri;
+	pti := intersect tri.Del.p1 tri.Del.p2 pt_dep pt_arr tri;
       if croise_segment tri.Del.p1 tri.Del.p3 pt_dep pt_arr
       then
-	  pti := intersect tri.Del.p1 tri.Del.p3 pt_dep pt_arr tri;
+	pti := intersect tri.Del.p1 tri.Del.p3 pt_dep pt_arr tri;
       if croise_segment tri.Del.p2 tri.Del.p3 pt_dep pt_arr
-       then
-	  pti := intersect tri.Del.p2 tri.Del.p3 pt_dep pt_arr tri;
+      then
+	pti := intersect tri.Del.p2 tri.Del.p3 pt_dep pt_arr tri;
     end;
   (!pti);;
 
-(* permet de prendre le bon triangle (dans le cas où on est pas dans le bon triangle le point d'intersection avec celui ci serait notre point de depart *)
+(* permet de prendre le bon triangle (dans le cas où on est pas dans le bon triangle le point d'intersection avec celui ci serait notre point de depart) pour considerer un point d'intersection correct
+renvoie donc le point d'intersection vérifié ou le point d'arrivé dans le cas où il n'y a pas d'intersection *)
 let bonneintersection = fun dep arriv listeDelaunay  ->
   let listeTriangle = Geo.dansQuelTriangle dep listeDelaunay in
   let ptcorrec = ref ({Map.x= max_int;Map.y= max_int;Map.z= 0.}) in
@@ -159,9 +164,7 @@ let bonneintersection = fun dep arriv listeDelaunay  ->
   (!ptcorrec);;
 
 
-(* calcul de la nouvelle vitesse a partir de 2 points connus appartenant à un même triangle *)
-(* ici calcul avec les moteurs electriques *)
-(* il faudra ajouter la fonction d'appel de calcul de vitesse selon si c'est elec ou non*)
+(* calcul de la nouvelle vitesse a partir de 2 points connus appartenant à un même triangle ev verifiant si c'est un moteur electriue ou non *)
 let new_speed = fun depart inter avion masse speedavant speedmax flight_stand  ->
   let newspeed = ref 0. in
   let distance = Pente.distance3D depart inter in
@@ -178,31 +181,34 @@ let new_speed = fun depart inter avion masse speedavant speedmax flight_stand  -
       newspeed := !nextspeed
     else
       newspeed := speedmax;
-    if speedmax >= 17. (* on est certainement sur la piste en train d'accelerer ou de décelerer *)
+    if speedmax >= 17. (* on est certainement sur la piste en train d'accelerer ou de décelerer donc on n'utilise plus les moteurs electriques*)
     then
       newspeed := speedmax;
   end;
   !newspeed ;;
 
+(* calcul et revoie le temps pour parcourir la distante entre 2 points à la vitesse calculée par le modéle choisi *)
 let temps2point1triangle = fun pointdep point avion masse vitesseAvant vitesseMax flight_stand ->
   let vitesseElec = new_speed pointdep point avion masse vitesseAvant vitesseMax flight_stand in
   let distance = Pente.distance3D pointdep point in
   let timeElect = distance /. vitesseElec in
   timeElect;;
 
+(* renvoie le point situé à la distance du point de depart tel que à la vitesse choisie, un temps t a été parcouru *)
 let distanceParcourue = fun pointdep point temps avion masse vitesseAvant vitesseMax flight_stand ->
   let vitesseElec = new_speed pointdep point avion masse vitesseAvant vitesseMax flight_stand in
   let distanceAparcourir = vitesseElec *. temps in
   let pointAGarder = Geo.intersecSegCercle pointdep point distanceAparcourir in
    pointAGarder;;
 
+(* calcul de l'altitude d'un point *)
 let calculAltitudePoint = fun point triangulation ->
   let listeTriangle = Geo.dansQuelTriangle point triangulation in
   match listeTriangle with
       [] -> 0.;
     | triangle::reste -> Pente.altitudePoint point triangle;;
 
-  
+(* renvoie la liste des points espacés de 5s pour la nouvelle trajectoire entre 2 points *)
 let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand ->
   let listePointAGarder = ref [] in
   let vitesseNoElec = Pente.vitesse_5s_3d pointdep pointarriv in
@@ -241,6 +247,7 @@ let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangu
     vitesseAvant := 0.;
   (!listePointAGarder);;
 
+(* calcul de la trajectoire totale a partir de la liste de point initiale et de la triangulation de Delaunay *)
 let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation timeSimulation flight_stand ->
   let compteurTempsA5s = ref 0. in
   let trajectoireElectrique = ref [] in
