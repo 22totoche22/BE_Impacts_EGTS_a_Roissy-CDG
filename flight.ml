@@ -2,6 +2,7 @@ module Map = Lfpg_map
 module Visu = Visu
 module Del = Delaunay
 module Accel = Accel
+module Backtrack = Backtrack2
   
 let print_avion_simulation listeavion_simulation =
   List.iter (fun avion -> print_string avion.Map.flight_id; print_string " : " ) listeavion_simulation ;;
@@ -43,9 +44,9 @@ let enleve_avion listeavion_simulation time =
 let  new_trajectory route =
   let point = hd route in 
   let new_trajectoire = tl route in
-  (point,new_trajectoire);; (* (point signe, liste de points signés) *)
+  (point,new_trajectoire);; (* (point signe, liste de points renvoie) *)
 
-(* renvoie les trajectoires sans le premier point *)
+(* signés les trajectoires sans le premier point *)
 let new_trajectories trajectories =
   List.map (fun (route,s) ->  let (pt,traj) = new_trajectory route in (traj,s))  trajectories;;
 
@@ -53,7 +54,7 @@ let new_trajectories trajectories =
 let new_points trajectories =
   List.map (fun (route,s) ->  let (pt,traj) = new_trajectory route in (pt,s)) trajectories;;
     
-
+(*
 (* simulation *)
 let simulation (marks,runways,taxiways,listetriangle,listeavion) dt vitesse=
   Graphics.open_graph("");
@@ -82,9 +83,9 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) dt vitesse=
 	simu new_time new2_listeavion_simulation new_trajectoires end in
   simu debut_time  debut_listeavion_simulation debut_trajectoires;
   with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;;
-
+*)
 exception Trajectory
-
+(*
 let rec trajectoires_altitude quantite liste_avion liste_avion_tire triangulation timeSimulation =
   if quantite = 0 then
     liste_avion
@@ -118,14 +119,66 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire triangulatio
       let new_traject = Accel.calculTrajectoireTotal  plane.Map.route !avion !masse triangulation timeSimulation plane.Map.flight_stand in
       plane.Map.route <- new_traject ;
       trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire triangulation timeSimulation;
+end;;
+*)
+
+let simulation (marks,runways,taxiways,listetriangle,listeavion) triangulation fenetre dt vitesse=
+  Graphics.open_graph("");
+  let (largeur, hauteur) = (1200,800) in
+  Graphics.resize_window largeur hauteur;
+  let (largeur_max,hauteur_max) = (10000,8000) in
+  try Visu.draw_airport (marks,runways,taxiways,listetriangle) largeur largeur_max hauteur hauteur_max;
+      
+      let listeaviontrie =  List.sort (fun a b  -> if a.Map.h_dep < b.Map.h_arr then -1 else 1) listeavion in
+      List.iteri (fun i avion -> begin print_string "avion : " ;print_int i ; let _ = Backtrack.ajout_avion_resolu avion fenetre i dt triangulation in () end ) listeaviontrie;
+      let debut_time = 0 in
+      print_string "solve";
+      let rec simu time =
+	if time = 86400 (* 24h en seconde *)
+	then print_string "terminé"
+	else
+	  begin
+	    let points = ref [] in
+	    let pointnul = {Map.x = 0; y = 0; z = 0.} in
+	    Array.iteri (fun nb i ->
+	      let _avion = List.nth listeaviontrie nb in
+	      if not(i.(time/5).Map.x = pointnul.Map.x && i.(time/5).Map.y = pointnul.Map.y)
+	      then points := (i.(time/5),_avion.Map.flight_stand )::!points
+	    )  !fenetre;
+	    
+	    (* List.iter (fun (i,b) -> Printf.printf "%d %d \n" i.Map.x i.Map.y) !points;*)
+	    Visu.move_flights !points largeur largeur_max hauteur hauteur_max time vitesse;
+	    let new_time = time + dt in
+	    simu new_time 
+	  end in
+      simu debut_time;
+  with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;;
+
+
+  
+let rec trajectoires_altitude quantite liste_avion liste_avion_tire   =
+  if quantite = 0 then
+    liste_avion
+  else
+    begin
+      let size = List.length liste_avion in
+      let rec nombre_tire () =
+	let n = Random.int size in
+	if not (List.mem n liste_avion_tire) then n
+	else  nombre_tire () in
+      let nombre = nombre_tire() in
+      let new_liste_avion_tire = nombre::liste_avion_tire in
+      let liste_avion_tire = new_liste_avion_tire in
+      let plane = List.nth liste_avion nombre in
+      plane.Map.flight_stand <- "E";
+      trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire;
     end;;
   
 
 
 
 let () =
-  
-  let liste_avion  =  trajectoires_altitude 100 Map.flights [] Del.listeTriangle 5. in    (* sur 1573 *)
-  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,liste_avion) 5 100.;;
+  let fenetre = ref (Array.make 1573 (Array.make 18000 {Map.x = 0; y =0 ; z = 0.})) in   
+  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) Del.listeTriangle fenetre 5 20.;;
  
 

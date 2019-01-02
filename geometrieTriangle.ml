@@ -131,3 +131,23 @@ let distance = 2.9
 let result = intersecSegCercle p1 p2 distance ;;
 Printf.printf "\nINTERSECTION point %d %d %f\n" result.Map.x result.Map.y result.Map.z
 *)
+type rectangle = {p1:Map.point; p2 : Map.point; p3 :Map.point; p4 :Map.point};;
+
+(* retourne true si le point est dans un rectangle *)
+let pointdansrectangle point rectangle  =
+  let (ax,ay) = (rectangle.p1.Map.x,rectangle.p1.Map.y) in
+  let (bx,by) = (rectangle.p2.Map.x,rectangle.p2.Map.y) in
+  let (cx,cy) = (rectangle.p3.Map.x,rectangle.p3.Map.y) in
+  let (dx,dy) = (rectangle.p4.Map.x,rectangle.p4.Map.y) in
+  let (mx,my) = (point.Map.x, point.Map.y) in
+  let vect_ab = (bx - ax, by - ay) in
+  let vect_am = (mx - ax, my - ay) in
+  let vect_ad = (dx - ax, dy - ay) in
+  let vect_cd = (dx - cx, dy - cy) in
+  let vect_cm = (mx - cx, my - cy) in
+  let vect_cb = (bx - cx, by - cy) in
+  let ab_ad = (produit_vectoriel  vect_ab vect_am) * (produit_vectoriel  vect_am vect_ad) in
+  let cb_cd = (produit_vectoriel  vect_cb vect_cm) * (produit_vectoriel  vect_cm vect_cd) in
+  (ab_ad >= 0 && cb_cd >= 0)
+  
+  

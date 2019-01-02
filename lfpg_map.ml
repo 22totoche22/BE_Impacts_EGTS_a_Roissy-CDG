@@ -20,14 +20,60 @@ type runway = {runway_marks : string list;
 	       left : string;
 	       right : string}
 
+type plane = {tipe : string;
+	      mass_dep : float;
+	      mass_arri : float;
+	      tireradius : float;
+	      maxegtstorque : float;
+	      egtspower : float;
+	      breakawayresistance : float;
+	      rollingresistance : float;
+	      aerocoef : float;
+	      stepcoef : float}
+  
 type flight = {dep_arr : string;
 	       flight_id : string;
-	       mutable flight_category : string;
+	       mutable flight_category : plane;
 	       mutable flight_stand : string;
 	       flight_qfu : string;
 	       h_dep : int;
 	       h_arr : int;
+	       masse : float;
 	       mutable route : point list}
+
+
+let a320 = {tipe = "a320";
+ 	mass_dep = 69000.;
+ 	mass_arri = 62000.;
+ 	tireradius = 0.56;
+	maxegtstorque = 16000.;
+ 	egtspower = 46000.;
+ 	breakawayresistance = 0.01;
+	rollingresistance = 0.007;
+	aerocoef = 1.032;
+	stepcoef = 4.1};;
+
+let a319 = {tipe = "a319";
+ 	mass_dep = 63000.;
+ 	mass_arri = 57000.;
+ 	tireradius = 0.56;
+	maxegtstorque = 16000.;
+ 	egtspower = 46000.;
+ 	breakawayresistance = 0.01;
+	rollingresistance = 0.007;
+	aerocoef = 1.032;
+	stepcoef = 4.1};;
+
+let a321 = {tipe = "a321";
+ 	mass_dep = 81000.;
+ 	mass_arri = 73000.;
+ 	tireradius = 0.56;
+	maxegtstorque = 16000.;
+ 	egtspower = 46000.;
+ 	breakawayresistance = 0.01;
+	rollingresistance = 0.007;
+	aerocoef = 1.032;
+	stepcoef = 4.1};;
 
 exception Empty
 
@@ -109,15 +155,32 @@ let read_file_flights nom_fichier_flights =
   let rec read_file_rec flights =
     try
       let line = Str.split (Str.regexp "[ ]") (input_line file) in      (* cree une liste pour la ligne avec le séparateur " " *)
+
       match line with
 	dep::id::category::stand::runway::prove::desti::_::coordonnees ->
+	  let avion = ref a319 in
+	  let masse = ref 0. in
+	  begin
+	    match category with
+	      cat when cat = "L" ->  avion:= a319
+	    |cat when cat = "M" ->  avion:= a320
+	    |cat when cat = "H" ->  avion:= a321
+	    |_ -> failwith "category" ;
+	  end;
+	  begin
+	    match dep with
+	      dep_ar when dep_ar = "DEP" -> masse := (!avion).mass_dep 
+	    |dep_ar when dep_ar = "ARR" -> masse  := (!avion).mass_arri 
+	    |_ -> failwith "depart_arrive" ;
+	  end;
 	  let new_flights = {dep_arr = dep;
 			     flight_id  = id;
-			     flight_category = category;
+			     flight_category = !avion;
 			     flight_qfu = runway;
 			     flight_stand = stand;
 			     h_dep = int_of_string prove;
 			     h_arr = int_of_string desti;
+			     masse = !masse;
 			     route = (List.map stringtotuple coordonnees)}::flights in
 	  read_file_rec new_flights;
       |_ -> raise Empty

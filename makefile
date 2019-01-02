@@ -1,4 +1,4 @@
-SOURCES = lfpg_map.ml  delaunay.ml visu.ml solve.ml pivot.ml pente.ml
+SOURCES = lfpg_map.ml delaunay.ml visu.ml geometrieTriangle.ml solve.ml pivot.ml pente.ml  accel.ml backtrack2.ml flight.ml
 
 EXEC = prog
 CAMLC = ocamlc
@@ -6,7 +6,7 @@ CAMLOPT = ocamlopt
 CAMLDEP = ocamldep
 CAMLLEX = ocamllex
 CAMLYACC = ocamlyacc
-LIBS = graphics.cma str.cma
+LIBS = graphics.cma str.cma unix.cma
 
 all: depend $(EXEC)
 

@@ -5,69 +5,27 @@ module Geo = GeometrieTriangle
 module Pivot = Pivot
 exception PointFailure;;
 
-type avion = {tipe : string;
-	      mass_dep : float;
-	      mass_arri : float;
-	      tireradius : float;
-	      maxegtstorque : float;
-	      egtspower : float;
-	      breakawayresistance : float;
-	      rollingresistance : float;
-	      aerocoef : float;
-	      stepcoef : float}
 
 (* calcul la nouvelle vitesse de l'avion a partir de l'ancienne dans le cas d'un moteur electrique *)
 let nexspeedegts avion mass slope speed =
-  let slopetorque = -. mass *. 9.81 *. sin( atan(slope /. 100.)) *. avion.tireradius in
+  let slopetorque = -. mass *. 9.81 *. sin( atan(slope /. 100.)) *. avion.Map.tireradius in
   let restorque = ref 0. in
   let egtstorque = ref 0. in
   if speed < 1. then
-     restorque := -.mass *. avion.breakawayresistance *. 10. *. avion.tireradius
-  else restorque := -.mass *. avion.rollingresistance *. 10. *. avion.tireradius;
+     restorque := -.mass *. avion.Map.breakawayresistance *. 10. *. avion.Map.tireradius
+  else restorque := -.mass *. avion.Map.rollingresistance *. 10. *. avion.Map.tireradius;
   if speed < 1. then
-    egtstorque := avion.maxegtstorque
-  else egtstorque := (fun a b -> if a <= b then a else b) avion.maxegtstorque (avion.egtspower /. (speed /. avion.tireradius));
-  let aerotorque = avion.aerocoef *. speed *. speed in
+    egtstorque := avion.Map.maxegtstorque
+  else egtstorque := (fun a b -> if a <= b then a else b) avion.Map.maxegtstorque (avion.Map.egtspower /. (speed /. avion.Map.tireradius));
+  let aerotorque = avion.Map.aerocoef *. speed *. speed in
   let torque = !egtstorque +. slopetorque +. !restorque +. aerotorque in
-  let acc = (fun a b -> if a >= b then a else b) 0. (torque /. avion.tireradius /. mass) in
-  speed +. avion.stepcoef *. acc
+  let acc = (fun a b -> if a >= b then a else b) 0. (torque /. avion.Map.tireradius /. mass) in
+  speed +. avion.Map.stepcoef *. acc
 						    
 (* calcul la nouvelle vitesse de l'avion a partir de l'ancienne dans le cas classique *)
 let nexspeedclassic speed =
   speed +. 0.9;;
 
-let a320 = {tipe = "a320";
- 	mass_dep = 69000.;
- 	mass_arri = 62000.;
- 	tireradius = 0.56;
-	maxegtstorque = 16000.;
- 	egtspower = 46000.;
- 	breakawayresistance = 0.01;
-	rollingresistance = 0.007;
-	aerocoef = 1.032;
-	stepcoef = 4.1};;
-
-let a319 = {tipe = "a319";
- 	mass_dep = 63000.;
- 	mass_arri = 57000.;
- 	tireradius = 0.56;
-	maxegtstorque = 16000.;
- 	egtspower = 46000.;
- 	breakawayresistance = 0.01;
-	rollingresistance = 0.007;
-	aerocoef = 1.032;
-	stepcoef = 4.1};;
-
-let a321 = {tipe = "a321";
- 	mass_dep = 81000.;
- 	mass_arri = 73000.;
- 	tireradius = 0.56;
-	maxegtstorque = 16000.;
- 	egtspower = 46000.;
- 	breakawayresistance = 0.01;
-	rollingresistance = 0.007;
-	aerocoef = 1.032;
-	stepcoef = 4.1};;
 
 type vect = {x : int; y : int};;
 
