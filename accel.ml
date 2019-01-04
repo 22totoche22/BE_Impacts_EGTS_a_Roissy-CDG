@@ -242,6 +242,51 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
   (!trajectoireElectrique);;
 
 
+
+(* il faudrait modifier pour ne pas calculer une liste de points, mais bon en attendant on va faire comme ca
+en fait il va y avoir un probleme avec les compteurs de temps... *)
+let pointTrajectoire = fun point1 point2 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s ->
+  let pointCalcule = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
+  let liste = calculTrajectoireEntre2points point1 point2 avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand in
+  begin
+    match liste with
+	[] -> ();
+      | point::reste -> pointCalcule := point;
+  end;
+  let n = float (List.length liste) -. 1. in
+  compteurTempsA5s := !compteurTempsA5s +. (n *. 5.);
+  !pointCalcule;;
+
+let calculTrajectForBacktrack = fun dernierPointCalcule listeTrajectoireRestante avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand ->
+  let point1 = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
+  let point2 = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
+  let pointRetour = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
+  begin
+    match listeTrajectoireRestante with
+      | [] -> ()
+      | [point] -> point1 := point
+      | point::pointsuiv::reste ->
+	point1 := point;
+	point2 := pointsuiv;
+  end;
+  if !point1 != {Map.x = max_int; Map.y = max_int; Map.z = infinity}
+  then
+    begin
+      if !compteurTempsA5s >= 5.
+      then
+	pointRetour :=  pointTrajectoire dernierPointCalcule !point1 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s
+      else
+	if !point2 != {Map.x = max_int; Map.y = max_int; Map.z = infinity}
+	then
+	  pointRetour :=  pointTrajectoire dernierPointCalcule !point2 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s;
+    end;
+  !pointRetour;;
+  (* si compteur > 5 on prend le 1er point de la liste
+     si compteur < 5 on prend le 2nd point de la liste
+  *)
+
+
+
 (*
 
 (* test à faire pour verifier les points obtenus *)
