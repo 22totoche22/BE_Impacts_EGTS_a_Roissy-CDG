@@ -257,28 +257,39 @@ let pointTrajectoire = fun point1 point2 vitesseAvant timeSimulation flight_stan
   compteurTempsA5s := !compteurTempsA5s +. (n *. 5.);
   !pointCalcule;;
 
+(* listeTrajectoire -> reference sur la liste de la trajectoire à parcourir 
+vitesseAvant -> reference initialisée à 0.
+CompteurTempsA5s -> reference initialisée à infinity*)
 let calculTrajectForBacktrack = fun dernierPointCalcule listeTrajectoireRestante avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand ->
   let point1 = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
   let point2 = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
   let pointRetour = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
+  let rest = ref [] in
   begin
-    match listeTrajectoireRestante with
+    match !listeTrajectoireRestante with
       | [] -> ()
       | [point] -> point1 := point
       | point::pointsuiv::reste ->
 	point1 := point;
 	point2 := pointsuiv;
+	rest := reste;
   end;
   if !point1 != {Map.x = max_int; Map.y = max_int; Map.z = infinity}
   then
     begin
       if !compteurTempsA5s >= 5.
       then
-	pointRetour :=  pointTrajectoire dernierPointCalcule !point1 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s
+	begin
+	  pointRetour :=  pointTrajectoire dernierPointCalcule !point1 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s;
+	  listeTrajectoireRestante := (!point1)::(!point2)::(!rest);
+	end
       else
 	if !point2 != {Map.x = max_int; Map.y = max_int; Map.z = infinity}
 	then
-	  pointRetour :=  pointTrajectoire dernierPointCalcule !point2 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s;
+	  begin
+	    pointRetour :=  pointTrajectoire dernierPointCalcule !point2 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s;
+	    listeTrajectoireRestante := (!point2)::(!rest);
+	  end;
     end;
   !pointRetour;;
   (* si compteur > 5 on prend le 1er point de la liste
