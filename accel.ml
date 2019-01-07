@@ -202,9 +202,15 @@ let  calculTrajectoireEntre2points = fun pointdep pointarriv avion masse triangu
   in loop pointdep;
   if (pointdep = pointarriv)
   then
-    vitesseAvant := 0.;
+    begin
+      vitesseAvant := 0.;
+      (* cas du pushback d'un avion non electrique il faut garder le point*)
+      if flight_stand != "E"
+      then
+	listePointAGarder := pointdep::[];
+    end;
   (!listePointAGarder);;
-
+    
 (* calcul de la trajectoire totale a partir de la liste de point initiale et de la triangulation de Delaunay *)
 let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation timeSimulation flight_stand ->
   let compteurTempsA5s = ref 0. in
@@ -241,7 +247,7 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
   
   (!trajectoireElectrique);;
 
-
+(* essai d'un calcul point a point pour faciliter le backtrack (et ne pas recalculer la trajectoire a chaque fois -> erreurs dans le code, difficile à faire avec la manière choisie de coder la trajectoire, donc abandonnee par manque de temps
 
 (* il faudrait modifier pour ne pas calculer une liste de points, mais bon en attendant on va faire comme ca
 en fait il va y avoir un probleme avec les compteurs de temps... *)
@@ -296,9 +302,9 @@ let calculTrajectForBacktrack = fun dernierPointCalcule listeTrajectoireRestante
      si compteur < 5 on prend le 2nd point de la liste
   *)
 
+*)
 
 
-(*
 
 (* test à faire pour verifier les points obtenus *)
 (* a verifier avec la vision des trajectoires *)
@@ -441,11 +447,16 @@ let trajet = point1::point2::[]
   *)
 let delau = Pivot.triangle_equa 
 let time = 5.
-let masse = a320.mass_dep
+let masse = Map.a320.mass_dep
 
-let trajectoire = calculTrajectoireTotal trajet a320 masse delau time ;;
+let trajectoire = calculTrajectoireTotal trajet Map.a320 masse delau time "E";;
+let trajectoire2 = calculTrajectoireTotal trajet Map.a320 masse delau time "X";;
+let n = List.length trajectoire;;
+let m = List.length trajectoire2;;
 
+let () = Printf.printf "\n\n n = %d m = %d  tempsAvant %d tempsApres %d\n\n" n m (m * 5) (n * 5);;
 
+(*
 let () =
 List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Map.y i.Map.z) trajectoire;;
 
