@@ -304,7 +304,7 @@ let calculTrajectForBacktrack = fun dernierPointCalcule listeTrajectoireRestante
 
 *)
 
-
+(*
 
 (* test à faire pour verifier les points obtenus *)
 (* a verifier avec la vision des trajectoires *)
@@ -460,4 +460,5 @@ let () = Printf.printf "\n\n n = %d m = %d  tempsAvant %d tempsApres %d\n\n" n m
 let () =
 List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Map.y i.Map.z) trajectoire;;
 
+*)
 *)
