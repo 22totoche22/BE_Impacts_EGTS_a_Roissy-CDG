@@ -247,13 +247,78 @@ let calculTrajectoireTotal = fun trajectoireInitiale avion masse triangulation t
   
   (!trajectoireElectrique);;
 
-(* essai d'un calcul point a point pour faciliter le backtrack (et ne pas recalculer la trajectoire a chaque fois -> erreurs dans le code, difficile à faire avec la manière choisie de coder la trajectoire, donc abandonnee par manque de temps
+
+
+
+(* renvoie la liste des points espacés de 5s pour la nouvelle trajectoire entre 2 points
+tiens compte des problemes du backtrack  *)
+let  _calculTrajectoireEntre2points = fun pointAvant pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand ->
+  let listePointAGarder = ref [] in
+  let vitesseNoElec = Pente.vitesse_5s_3d pointAvant pointarriv in
+  if pointAvant = pointarriv
+  then
+    begin
+      vitesseAvant := 0.;
+      (*cas du pushback d'un avion non electrique il faut garder le point*)
+      if flight_stand != "E"
+      then
+	listePointAGarder := pointdep::[];
+    end
+  else
+    begin
+      let rec loop = fun point1 ->
+	match point1 with
+	| a when a = pointarriv -> ()
+	| _ ->
+	   
+	   let pointintersec = bonneintersection point1 pointarriv triangulation in
+	   let timeIntersec = temps2point1triangle point1 pointintersec avion masse !vitesseAvant vitesseNoElec flight_stand in
+	   begin
+	     compteurTempsA5s := (!compteurTempsA5s) +. timeIntersec;
+	 (*    Printf.printf "compteur %f\n" !compteurTempsA5s; *)
+	     let rec loopTantQueCompteurSup5 = fun compteurSup pointGarde ->
+	       match compteurSup with
+	       | a when a < timeSimulation -> compteurTempsA5s := a;
+	       | compteur when compteur >= timeSimulation && compteur < (2. *. timeSimulation) ->
+		  let pointAgarder = distanceParcourue pointGarde pointintersec (compteur -. timeSimulation) avion masse !vitesseAvant vitesseNoElec flight_stand in
+		  begin
+		    listePointAGarder := List.append (!listePointAGarder) (pointAgarder::[]);
+		    compteurTempsA5s := compteur -. timeSimulation;
+		    vitesseAvant := new_speed pointGarde pointintersec avion masse !vitesseAvant vitesseNoElec flight_stand;
+		  end;
+	       | compteur ->
+		  let pointAGarder = distanceParcourue pointGarde pointintersec timeSimulation avion masse !vitesseAvant vitesseNoElec flight_stand in
+		  begin
+		    listePointAGarder := List.append (!listePointAGarder) (pointAGarder::[]);
+		    compteurTempsA5s := compteur -. timeSimulation;
+		    vitesseAvant := new_speed pointGarde pointintersec avion masse !vitesseAvant vitesseNoElec flight_stand;
+		  end;
+		  loopTantQueCompteurSup5 (compteur -. timeSimulation) pointAGarder;
+	     in loopTantQueCompteurSup5 !compteurTempsA5s point1;
+	   end;
+	   loop pointintersec;
+      in loop pointdep;
+    end;
+  if pointdep = pointarriv
+  then
+    begin
+      vitesseAvant := 0.;
+	  (*cas du pushback d'un avion non electrique il faut garder le point*)
+      if flight_stand != "E"
+      then
+	listePointAGarder := pointdep::[];
+    end;
+  (!listePointAGarder);;
+
+
+(*
+(* essai d'un calcul point a point pour faciliter le backtrack (et ne pas recalculer la trajectoire a chaque fois -> erreurs dans le code, difficile à faire avec la manière choisie de coder la trajectoire, donc abandonnee par manque de temps *)
 
 (* il faudrait modifier pour ne pas calculer une liste de points, mais bon en attendant on va faire comme ca
 en fait il va y avoir un probleme avec les compteurs de temps... *)
-let pointTrajectoire = fun point1 point2 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s ->
+let pointTrajectoire = fun point0 point1 point2 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s ->
   let pointCalcule = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
-  let liste = calculTrajectoireEntre2points point1 point2 avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand in
+  let liste = _calculTrajectoireEntre2points point0 point1 point2 avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand in
   begin
     match liste with
 	[] -> ();
@@ -266,7 +331,7 @@ let pointTrajectoire = fun point1 point2 vitesseAvant timeSimulation flight_stan
 (* listeTrajectoire -> reference sur la liste de la trajectoire à parcourir 
 vitesseAvant -> reference initialisée à 0.
 CompteurTempsA5s -> reference initialisée à infinity*)
-let calculTrajectForBacktrack = fun dernierPointCalcule listeTrajectoireRestante avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand ->
+let calculTrajectForBacktrack = fun pointAvant dernierPointCalcule listeTrajectoireRestante avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand ->
   let point1 = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
   let point2 = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
   let pointRetour = ref {Map.x = max_int; Map.y = max_int; Map.z = infinity} in
@@ -286,14 +351,14 @@ let calculTrajectForBacktrack = fun dernierPointCalcule listeTrajectoireRestante
       if !compteurTempsA5s >= 5.
       then
 	begin
-	  pointRetour :=  pointTrajectoire dernierPointCalcule !point1 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s;
+	  pointRetour :=  pointTrajectoire pointAvant dernierPointCalcule !point1 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s;
 	  listeTrajectoireRestante := (!point1)::(!point2)::(!rest);
 	end
       else
 	if !point2 != {Map.x = max_int; Map.y = max_int; Map.z = infinity}
 	then
 	  begin
-	    pointRetour :=  pointTrajectoire dernierPointCalcule !point2 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s;
+	    pointRetour :=  pointTrajectoire !point1 dernierPointCalcule !point2 vitesseAvant timeSimulation flight_stand avion masse triangulation compteurTempsA5s;
 	    listeTrajectoireRestante := (!point2)::(!rest);
 	  end;
     end;
@@ -301,8 +366,8 @@ let calculTrajectForBacktrack = fun dernierPointCalcule listeTrajectoireRestante
   (* si compteur > 5 on prend le 1er point de la liste
      si compteur < 5 on prend le 2nd point de la liste
   *)
-
 *)
+
 
 (*
 
@@ -462,51 +527,3 @@ List.iter (fun i -> Printf.printf "\ntrajectoire point %d %d %f \n" i.Map.x i.Ma
 
 *)
 *)
-(* renvoie la liste des points espacés de 5s pour la nouvelle trajectoire entre 2 points *)
-let  _calculTrajectoireEntre2points = fun pointAvant pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand ->
-  let listePointAGarder = ref [] in
-  let vitesseNoElec = Pente.vitesse_5s_3d  pointAvant pointarriv in
-  if pointAvant = pointarriv
-  then
-    begin
-      vitesseAvant := 0.;
-      (*cas du pushback d'un avion non electrique il faut garder le point*)
-      if flight_stand != "E"
-      then
-	listePointAGarder := pointdep::[];
-    end
-  else
-    begin
-      let rec loop = fun point1 ->
-	match point1 with
-	| a when a = pointarriv -> ()
-	| _ ->
-	   
-	   let pointintersec = bonneintersection point1 pointarriv triangulation in
-	   let timeIntersec = temps2point1triangle point1 pointintersec avion masse !vitesseAvant vitesseNoElec flight_stand in
-	   begin
-	     compteurTempsA5s := (!compteurTempsA5s) +. timeIntersec;
-	     let rec loopTantQueCompteurSup5 = fun compteurSup pointGarde ->
-	       match compteurSup with
-	       | a when a < timeSimulation -> compteurTempsA5s := a;
-	       | compteur when compteur >= timeSimulation && compteur < (2. *. timeSimulation) ->
-		  let pointAgarder = distanceParcourue pointGarde pointintersec (compteur -. timeSimulation) avion masse !vitesseAvant vitesseNoElec flight_stand in
-		  begin
-		    listePointAGarder := List.append (!listePointAGarder) (pointAgarder::[]);
-		    compteurTempsA5s := compteur -. timeSimulation;
-		    vitesseAvant := new_speed pointGarde pointintersec avion masse !vitesseAvant vitesseNoElec flight_stand;
-		  end;
-	       | compteur ->
-		  let pointAGarder = distanceParcourue pointGarde pointintersec timeSimulation avion masse !vitesseAvant vitesseNoElec flight_stand in
-		  begin
-		    listePointAGarder := List.append (!listePointAGarder) (pointAGarder::[]);
-		    compteurTempsA5s := compteur -. timeSimulation;
-		    vitesseAvant := new_speed pointGarde pointintersec avion masse !vitesseAvant vitesseNoElec flight_stand;
-		  end;
-		  loopTantQueCompteurSup5 (compteur -. timeSimulation) pointAGarder;
-	     in loopTantQueCompteurSup5 !compteurTempsA5s point1;
-	   end;
-	   loop pointintersec;
-      in loop pointdep;
-    end;
-  (!listePointAGarder);;

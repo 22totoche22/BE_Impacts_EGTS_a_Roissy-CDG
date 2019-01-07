@@ -44,6 +44,7 @@ let y09R = {Map.x = 1639; y = 1575; z = 0.} in
 let z09R = {Map.x = 1639; y = 1535; z = 0.} in
 let runway09R = {Geo.p1 = w09R; p2 = x09R; p3 = y09R; p4 = z09R}in ();;
 
+
 (* rajoute la trajectoire d'un avion sans conflit *)
 let ajout_avion_resolu avion fenetre ligne dt triangulation =
   let tab_trajectoire = trajectoire avion in
@@ -54,39 +55,37 @@ let ajout_avion_resolu avion fenetre ligne dt triangulation =
   let vitesseAvant = ref 0. in
   let compteurTempsA5s = ref 0. in
   let longueur_liste = ref 0 in
+  let tab_traj_pos = ref 0 in
   let rec solve_conflit position temps_t =
-
-
+    Printf.printf "coucou\n";
     (* on met la position dans le tableau si pas de conflit sinon on passe la vitesse de l'avion à 0 *)
     match not (avion_conflit !fenetre  ligne !position ((time_debut + temps_t)/5)) with
       true ->
-    
+	Printf.printf "ee\n";
 	Array.set (!fenetre).(ligne) ((time_debut + temps_t)/5) !position ;
-	  
+	Printf.printf "le\n";
       (* calcul de la nouvelle position *)
 	let traject = ref [] in
-	let next_position = ref (position_temps tab_trajectoire (temps_t+dt)) in
-	traject := Accel._calculTrajectoireEntre2points (position_temps tab_trajectoire (temps_t)) !position !next_position avion.Map.flight_category avion.Map.masse triangulation compteurTempsA5s (float dt) vitesseAvant avion.Map.flight_stand;
+	let next_position = ref (position_temps tab_trajectoire (!tab_traj_pos + dt)) in
+	Printf.printf "aaa\n";
+	traject := Accel._calculTrajectoireEntre2points (position_temps tab_trajectoire (!tab_traj_pos)) !position !next_position avion.Map.flight_category avion.Map.masse triangulation compteurTempsA5s (float dt) vitesseAvant avion.Map.flight_stand;
 	longueur_liste := List.length !traject;
-
-	if !longueur_liste = 0
+	Printf.printf "heello \n";
+	if !longueur_liste <= 1
 	then
 	  begin
-	    next_position := position_temps tab_trajectoire (temps_t + 2 * dt);
-	    traject := Accel._calculTrajectoireEntre2points (position_temps tab_trajectoire (temps_t + dt))  !position !next_position avion.Map.flight_category avion.Map.masse triangulation compteurTempsA5s (float dt) vitesseAvant avion.Map.flight_stand;
+	    next_position := position_temps tab_trajectoire (!tab_traj_pos + 2 * dt);
+	    traject := Accel._calculTrajectoireEntre2points (position_temps tab_trajectoire (!tab_traj_pos + dt))  !position !next_position avion.Map.flight_category avion.Map.masse triangulation compteurTempsA5s (float dt) vitesseAvant avion.Map.flight_stand;
+	    tab_traj_pos := !tab_traj_pos + dt;
 	  end;	
 	let new_position = ref (List.hd !traject) in
 	Printf.printf "pos %d %d \n" (!position).Map.x (!position).Map.y;
 	Printf.printf "pos'%d %d \n" (!next_position).Map.x (!next_position).Map.y;
 	
 	
-      (* si c'est la fin ou en continuant ou en s'arretant *)
-	(position_temps tab_trajectoire (temps_t+dt)) = fin  || solve_conflit new_position (temps_t + dt) || solve_conflit position (temps_t +dt)
+	(* si c'est la fin ou en continuant ou en s'arretant *)
+  (position_temps tab_trajectoire (!tab_traj_pos+dt)) = fin || solve_conflit new_position (temps_t + dt) || solve_conflit position (temps_t +dt)
 	    
     |false -> vitesseAvant := 0.;false
   in
-  solve_conflit debut 0 ;;
-
-
-
-
+  solve_conflit debut 0;;
