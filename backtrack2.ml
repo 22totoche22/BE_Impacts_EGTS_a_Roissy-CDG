@@ -15,7 +15,7 @@ let position_temps tab_trajectoires temps =
 
 (* renvoie true si le point A et le point B sont trop proches *)
 let rencontre pointA pointB =
-  let rayon = 40. in  (* nos avions ont des longeurs de 32m *)
+  let rayon = 100. in  (* nos avions ont des longeurs de 32m *)
   let dis_ab = float (pointA.Map.x - pointB.Map.x ) ** 2. +. float (pointA.Map.y - pointB.Map.y ) ** 2. in
   (sqrt ( dis_ab)) < (2. *. rayon) ;; (* |R-R'| < AB < R+R' *)
 
@@ -66,3 +66,40 @@ let ajout_avion_resolu avion fenetre ligne dt triangulation =
   solve_conflit debut 0 !vitesseAvant;;
 
 
+
+(*
+let ajout_avion_resolu avion fenetre ligne dt triangulation =
+  let tab_trajectoire = trajectoire avion in
+  let list_trajectoire = ref avion.Map.route in
+  let length = Array.length tab_trajectoire in
+  let time_debut = avion.Map.h_dep in
+  let fin = tab_trajectoire.(length -1) in
+  
+  let rec solve_conflit temps_t trajectoire =
+
+    let position = ref {Map.x = 0; y =0; z=0.} in
+    begin
+	  match !trajectoire with
+	  hd::_ -> position := hd; 
+	  |_ -> failwith "liste vide1";
+    end;
+
+    (* on met la position dans le tableau si pas de conflit sinon on recalcule la trajectoire et on la met à jour *)
+    if not (avion_conflit !fenetre  ligne !position ((time_debut + temps_t)/5))
+    then
+      begin
+	Array.set (!fenetre).(ligne) ((time_debut + temps_t)/5) !position ;
+	begin
+	  match !trajectoire with
+	  hd::tail -> trajectoire := tail
+	  |_ -> failwith "liste vide2";
+	end
+      end
+    else
+      begin
+      trajectoire := Accel.calculTrajectoireTotal !trajectoire avion.Map.flight_category avion.Map.masse triangulation (float dt) avion.Map.flight_stand;
+      end;
+    !trajectoire = []  || solve_conflit (temps_t + dt) trajectoire in
+  
+  solve_conflit 0 list_trajectoire;;
+*)

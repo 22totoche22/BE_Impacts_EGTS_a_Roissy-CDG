@@ -58,9 +58,15 @@ let draw_airport (marks,runways,taxiways,listetriangle) largeur largeur_max haut
 
 
 let wait milli =
+  
   let sec = milli /. 1000. in
   let tm1 = Unix.gettimeofday () in
   while Unix.gettimeofday () -. tm1 < sec do () done;;
+  (*
+    soucis en optimisé
+  let commande = "sleep %" ^ (string_of_float milli) in
+  Sys.command commande
+;;*)
 
 (*
 let rec event_loop x y (marks,runways,taxiways,listetriangle) hauteur_max largeur_max = 

@@ -146,7 +146,8 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) triangulation f
 	      then points := (i.(time/5),_avion.Map.flight_stand )::!points
 	    )  !fenetre;
 	    
-	    (* List.iter (fun (i,b) -> Printf.printf "%d %d \n" i.Map.x i.Map.y) !points;*)
+	    (* List.iter (fun (i,b) -> Printf.printf "%d %d " i.Map.x i.Map.y) !points;
+	       Printf.printf "\n nouveau dt \n"; *)
 	    Visu.move_flights !points largeur largeur_max hauteur hauteur_max time vitesse;
 	    let new_time = time + dt in
 	    simu new_time 
@@ -178,7 +179,9 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire   =
 
 
 let () =
-  let fenetre = ref (Array.make 1573 (Array.make 18000 {Map.x = 0; y =0 ; z = 0.})) in   
+  let fenetre = ref (Array.make_matrix 1573 20000 {Map.x = 0; y =0 ; z = 0.}) in
+  let _ = trajectoires_altitude 300 Map.flights [] in
   simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) Del.listeTriangle fenetre 5 20.;;
- 
+
+
 
