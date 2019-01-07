@@ -43,16 +43,20 @@ let ajout_avion_resolu avion fenetre ligne dt triangulation =
   let fin = tab_trajectoire.(length -1) in
   let vitesseAvant = ref 0. in
   let compteurTempsA5s = ref 0. in
+  
   let rec solve_conflit position temps_t vitesse =
     let position = position_temps tab_trajectoire temps_t in
     let new_position = ref position in
     let next_position = ref position in
+    
     if not ((!next_position).Map.x = fin.Map.x && (!next_position).Map.y = fin.Map.y )
     then  next_position := (position_temps tab_trajectoire (temps_t + dt));
+    
     (* on met la position dans le tableau si pas de conflit sinon on passe la vitesse de l'avion à 0 *)
     if not (avion_conflit !fenetre  ligne position ((time_debut + temps_t)/5))
     then  Array.set (!fenetre).(ligne) ((time_debut + temps_t)/5) position 
     else  vitesseAvant:= 0.;
+    
     (* disjonction de cas si compteurTempsà5s < 5s *)
     if (!compteurTempsA5s <  float dt) && not((!next_position).Map.x = fin.Map.x && (!next_position).Map.y = fin.Map.y )
     then
@@ -69,14 +73,10 @@ let ajout_avion_resolu avion fenetre ligne dt triangulation =
 
 (*
 let ajout_avion_resolu avion fenetre ligne dt triangulation =
-  let tab_trajectoire = trajectoire avion in
   let list_trajectoire = ref avion.Map.route in
-  let length = Array.length tab_trajectoire in
   let time_debut = avion.Map.h_dep in
-  let fin = tab_trajectoire.(length -1) in
-  
   let rec solve_conflit temps_t trajectoire =
-
+    
     let position = ref {Map.x = 0; y =0; z=0.} in
     begin
 	  match !trajectoire with
