@@ -57,7 +57,7 @@ let new_points trajectories =
 
 exception Trajectory
 
-
+(*
 (* simulation *)
 let simulation (marks,runways,taxiways,listetriangle,listeavion) dt vitesse=
   Graphics.open_graph("");
@@ -86,7 +86,7 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) dt vitesse=
 	simu new_time new2_listeavion_simulation new_trajectoires end in
   simu debut_time  debut_listeavion_simulation debut_trajectoires;
   with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;;
-
+*)
 let rec trajectoires_altitude quantite liste_avion liste_avion_tire   =
   if quantite = 0 then
     liste_avion
@@ -105,13 +105,13 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire   =
       trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire;
     end;;
   
-
+(*
 let () =
 
   let _  =  trajectoires_altitude 100 Map.flights []  in    (* sur 1573 *)
   simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) 5 20.;;
+*)
 
-(*
 let simulation (marks,runways,taxiways,listetriangle,listeavion) triangulation fenetre dt vitesse=
   Graphics.open_graph("");
   let (largeur, hauteur) = (1200,800) in
@@ -154,5 +154,5 @@ let () =
   simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) Del.listeTriangle fenetre 5 20.;;
 
 
-*)
+
 
