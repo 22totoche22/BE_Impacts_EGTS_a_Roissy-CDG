@@ -255,14 +255,14 @@ tiens compte des problemes du backtrack  *)
 let  _calculTrajectoireEntre2points = fun pointAvant pointdep pointarriv avion masse triangulation compteurTempsA5s timeSimulation vitesseAvant flight_stand ->
   let listePointAGarder = ref [] in
   let vitesseNoElec = Pente.vitesse_5s_3d pointAvant pointarriv in
-  if pointAvant = pointarriv
+  if pointAvant = pointarriv || pointdep = pointarriv
   then
     begin
       vitesseAvant := 0.;
       (*cas du pushback d'un avion non electrique il faut garder le point*)
       if flight_stand != "E"
       then
-	listePointAGarder := pointdep::[];
+	listePointAGarder := pointarriv::[];
     end
   else
     begin
@@ -275,7 +275,9 @@ let  _calculTrajectoireEntre2points = fun pointAvant pointdep pointarriv avion m
 	   let timeIntersec = temps2point1triangle point1 pointintersec avion masse !vitesseAvant vitesseNoElec flight_stand in
 	   begin
 	     compteurTempsA5s := (!compteurTempsA5s) +. timeIntersec;
-	 (*    Printf.printf "compteur %f\n" !compteurTempsA5s; *)
+	   (*  if !compteurTempsA5s > 100.
+	     then compteurTempsA5s := 5.1; *)
+	     Printf.printf "compteur %f\n" !compteurTempsA5s;
 	     let rec loopTantQueCompteurSup5 = fun compteurSup pointGarde ->
 	       match compteurSup with
 	       | a when a < timeSimulation -> compteurTempsA5s := a;

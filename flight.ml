@@ -105,12 +105,6 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire   =
       trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire;
     end;;
   
-(*
-let () =
-
-  let _  =  trajectoires_altitude 100 Map.flights []  in    (* sur 1573 *)
-  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) 5 20.;;
-*)
 
 let simulation (marks,runways,taxiways,listetriangle,listeavion) triangulation fenetre dt vitesse=
   Graphics.open_graph("");
@@ -146,7 +140,13 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) triangulation f
   with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;;
 
 
-  
+(* sans le  backtrack, il faut aussi commenter et decommenter la simulation 
+let () =
+
+  let _  =  trajectoires_altitude 100 Map.flights []  in    (* sur 1573 *)
+  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) 5 20.;;
+*)
+
 
 let () =
   let fenetre = ref (Array.make_matrix 1573 20000 {Map.x = 0; y =0 ; z = 0.}) in
