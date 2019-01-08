@@ -26,6 +26,8 @@ let avion_conflit fenetre ligne position_avion t_fenetre =
     if !conflit || i >= (ligne-1) then ()
     else
       begin
+	(* Printf.printf "fen %d %d \n" fenetre.(i).(t_fenetre).Map.x fenetre.(i).(t_fenetre).Map.y;
+	   Printf.printf "pt %d %d \n" position_avion.Map.x position_avion.Map.y;*)
 	conflit := rencontre fenetre.(i).(t_fenetre) position_avion;
 	rec_conflit (i + 1) ;
       end in
@@ -45,7 +47,7 @@ let y09R = {Map.x = 1639; y = 1575; z = 0.} in
 let z09R = {Map.x = 1639; y = 1535; z = 0.} in
 let runway09R = {Geo.p1 = w09R; p2 = x09R; p3 = y09R; p4 = z09R}in ();;
 *)
-
+(*
 (* rajoute la trajectoire d'un avion sans conflit *)
 let ajout_avion_resolu avion fenetre ligne dt triangulation =
   let tab_trajectoire = trajectoire avion in
@@ -53,7 +55,6 @@ let ajout_avion_resolu avion fenetre ligne dt triangulation =
   let length = Array.length tab_trajectoire in
   let time_debut = avion.Map.h_dep in
   let fin = tab_trajectoire.(length -1) in
-  
   let rec solve_conflit trajectoire temps_t  =
 
     let position = ref {Map.x = 0; y =0; z=0.} in
@@ -79,10 +80,65 @@ let ajout_avion_resolu avion fenetre ligne dt triangulation =
 	List.length !new_trajectoire = 1 || !new_position = fin || solve_conflit new_trajectoire (temps_t + dt) 
 	    
     |false ->
-       
+       Printf.printf "la";
        trajectoire := Accel.calculTrajectoireTotal !trajectoire avion.Map.flight_category avion.Map.masse triangulation (float dt) avion.Map.flight_stand;
       let new_position = ref (List.hd !trajectoire) in
       List.length !trajectoire = 1 || !new_position = fin ||solve_conflit trajectoire (temps_t +dt)
       
+  in
+  solve_conflit list_trajectoire 0;;
+*)
+
+let sans_conflit fenetre ligne position temps =
+  let sansconflit = not (avion_conflit !fenetre  ligne position temps) in
+    Printf.printf "%d %d\n" position.Map.x position.Map.y;
+    if sansconflit
+    then
+      begin
+	Array.set (!fenetre).(ligne) temps position;
+	true;
+      end
+    else
+      begin
+	Printf.printf "non\n";
+	false
+      end;;
+
+let next_traject trajectoire =
+  let new_trajectoire = ref [] in
+  begin
+      match trajectoire with
+	hd::tail -> new_trajectoire := tail;
+      |_ -> failwith "liste vide2";
+  end;
+  !new_trajectoire;;
+
+let next_position trajectoire =
+  let next_pos = ref {Map.x = 0; y =0; z=0.} in
+  begin
+      match trajectoire with
+	hd::_ -> next_pos := hd;
+      |_ -> failwith "liste vide1";
+  end;
+  !next_pos;;
+
+let trajectoire_arret trajectoire category masse triangulation temps stand =
+  Printf.printf "la";
+  let new_trajectoire = ref [] in
+  new_trajectoire := Accel.calculTrajectoireTotal trajectoire category masse triangulation temps stand;
+  !new_trajectoire;;
+
+let ajout_avion_resolu avion fenetre ligne dt triangulation =
+  let tab_trajectoire = trajectoire avion in
+  let list_trajectoire = avion.Map.route in
+  let length = Array.length tab_trajectoire in
+  let time_debut = avion.Map.h_dep in
+  let fin = tab_trajectoire.(length -1) in
+  let rec solve_conflit trajectoire temps_t  =
+      (List.length trajectoire = 0 ||
+	    (sans_conflit fenetre ligne (List.hd trajectoire) ((time_debut + temps_t)/5))) &&
+	    (List.length trajectoire = 0 || next_position trajectoire = fin ||
+		solve_conflit (next_traject trajectoire) (temps_t + dt) ||
+		solve_conflit (trajectoire_arret trajectoire avion.Map.flight_category avion.Map.masse triangulation (float dt) avion.Map.flight_stand) (temps_t +dt))
   in
   solve_conflit list_trajectoire 0;;

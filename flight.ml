@@ -123,7 +123,7 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) triangulation f
 	else
 	  begin
 	    let points = ref [] in
-	    let pointnul = {Map.x = 0; y = 0; z = 0.} in
+	    let pointnul = {Map.x = max_int; y = max_int; z = 0.} in
 	    Array.iteri (fun nb i ->
 	      let _avion = List.nth listeaviontrie nb in
 	      if not(i.(time/5).Map.x = pointnul.Map.x && i.(time/5).Map.y = pointnul.Map.y)
@@ -149,8 +149,8 @@ let () =
 
 
 let () =
-  let fenetre = ref (Array.make_matrix 1573 20000 {Map.x = 0; y =0 ; z = 0.}) in
-  let _ = trajectoires_altitude 300 Map.flights [] in
+  let fenetre = ref (Array.make_matrix 12 20000 {Map.x = max_int; y =max_int ; z = 0.}) in
+  let _ = trajectoires_altitude 0 Map.flights [] in
   simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) Del.listeTriangle fenetre 5 20.;;
 
 
