@@ -232,5 +232,5 @@ let point_xyz_runway runway =
 
 let (marks,runways,taxiways) = read_file_map "lfpg_map.txt";;
 let points_alti = read_file_altitude "lfpg_alti.txt" ;;
-let flights = read_file_flights "lfpg_flights.txt" ;;
+let flights = read_file_flights "lfpg_flights_save.txt" ;;
 

@@ -121,12 +121,15 @@ let bonneintersection = fun dep arriv listeDelaunay  ->
   then ptcorrec := arriv;
   (!ptcorrec);;
 
+let maxpente = ref 0.;; 
 
 (* calcul de la nouvelle vitesse a partir de 2 points connus appartenant à un même triangle ev verifiant si c'est un moteur electriue ou non *)
 let new_speed = fun depart inter avion masse speedavant speedmax flight_stand  ->
   let newspeed = ref 0. in
   let distance = Pente.distance3D depart inter in
   let slope = (depart.Map.z -. inter.Map.z) /. distance in
+  if int_of_float ( slope *. 100000.) <> 100000 then
+  maxpente := max !maxpente slope;
   let nextspeed = ref 0. in
   begin
     if flight_stand = "E"

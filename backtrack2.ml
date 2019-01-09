@@ -15,7 +15,7 @@ let position_temps tab_trajectoires temps =
 
 (* renvoie true si le point A et le point B sont trop proches *)
 let rencontre pointA pointB =
-  let rayon = 5. in  (* nos avions ont des longeurs de 32m *)
+  let rayon = 20. in  (* nos avions ont des longeurs de 32m *)
   let dis_ab = float (pointA.Map.x - pointB.Map.x ) ** 2. +. float (pointA.Map.y - pointB.Map.y ) ** 2. in
   (sqrt ( dis_ab)) < (2. *. rayon) ;; (* |R-R'| < AB < R+R' *)
 
@@ -38,8 +38,7 @@ let avion_conflit fenetre ligne position_avion t_fenetre =
 
 
 let sans_conflit fenetre ligne position temps =
-  Printf.printf "%d %d\n" position.Map.x position.Map.y;
-  Printf.printf "%d \n" temps;
+  Printf.printf "testons la position %d %d au temps %d \n" position.Map.x position.Map.y temps;
   let sansconflit = not (avion_conflit !fenetre  ligne position temps) in
   
     if sansconflit

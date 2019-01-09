@@ -57,9 +57,9 @@ let new_points trajectories =
 
 exception Trajectory
 
-(*
+
 (* simulation *)
-let simulation (marks,runways,taxiways,listetriangle,listeavion) dt vitesse=
+let simulation1 (marks,runways,taxiways,listetriangle,listeavion) dt vitesse=
   Graphics.open_graph("");
   let (largeur, hauteur) = (1200,800) in
   Graphics.resize_window largeur hauteur;
@@ -86,8 +86,42 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) dt vitesse=
 	simu new_time new2_listeavion_simulation new_trajectoires end in
   simu debut_time  debut_listeavion_simulation debut_trajectoires;
   with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;;
-*)
-let rec trajectoires_altitude quantite liste_avion liste_avion_tire   =
+
+let trajectoires_altitude1 quantite_ liste_avion_ liste_avion_tire_ triangulation dt =
+  let tempsenplus = ref [] in
+  let rec trajectoires_altitude quantite liste_avion liste_avion_tire   =
+    if quantite = 0 then
+      begin
+	let somme = List.fold_left (fun a b -> a +. b) 0. !tempsenplus in
+	let moyenne = somme /. float (List.length !tempsenplus) in
+	Printf.printf "moyenne temps en plus : %f  \n" moyenne;
+	Printf.printf "pente maximale : %f \n" (Accel.(!maxpente) *. 100.);
+        liste_avion
+      end
+    else
+      begin
+	let size = List.length liste_avion in
+	let rec nombre_tire () =
+	  let n = Random.int size in
+	  if not (List.mem n liste_avion_tire) then n
+	  else  nombre_tire () in
+	let nombre = nombre_tire() in
+	let new_liste_avion_tire = nombre::liste_avion_tire in
+	let liste_avion_tire = new_liste_avion_tire in
+	let avion = List.nth liste_avion nombre in
+	let temps1 = ((List.length avion.Map.route) - 1) *5 in
+	avion.Map.flight_stand <- "E";
+	avion.Map.route <- (Accel.calculTrajectoireTotal avion.Map.route avion.Map.flight_category avion.Map.masse triangulation dt avion.Map.flight_stand);
+	let temps2 = ((List.length avion.Map.route) - 1) *5 in
+	let diff = (float ( abs (temps2 - temps1)) /. float temps1) *. 100. in
+	tempsenplus:= diff::!tempsenplus;
+	trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire;
+      end; in
+  trajectoires_altitude quantite_ liste_avion_ liste_avion_tire_;;
+    
+
+
+let rec trajectoires_altitude2 quantite liste_avion liste_avion_tire   =
   if quantite = 0 then
     liste_avion
   else
@@ -102,11 +136,11 @@ let rec trajectoires_altitude quantite liste_avion liste_avion_tire   =
       let liste_avion_tire = new_liste_avion_tire in
       let plane = List.nth liste_avion nombre in
       plane.Map.flight_stand <- "E";
-      trajectoires_altitude (quantite - 1) liste_avion liste_avion_tire;
+      trajectoires_altitude2 (quantite - 1) liste_avion liste_avion_tire;
     end;;
   
 
-let simulation (marks,runways,taxiways,listetriangle,listeavion) triangulation fenetre dt vitesse=
+let simulation2 (marks,runways,taxiways,listetriangle,listeavion) triangulation fenetre dt vitesse=
   Graphics.open_graph("");
   let (largeur, hauteur) = (1200,800) in
   Graphics.resize_window largeur hauteur;
@@ -140,19 +174,18 @@ let simulation (marks,runways,taxiways,listetriangle,listeavion) triangulation f
   with Graphics.Graphic_failure _ -> print_endline "Exiting..." ;;
 
 
-(* sans le  backtrack, il faut aussi commenter et decommenter la simulation 
-let () =
-
-  let _  =  trajectoires_altitude 100 Map.flights []  in    (* sur 1573 *)
-  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) 5 20.;;
-*)
-
 
 let () =
+   (*  sans le  backtrack,*)
+  
+   let _  =  trajectoires_altitude1 1000 Map.flights [] Del.listeTriangle 5. in    (* sur 1573 *)
+  simulation1 (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) 5 20.;;
+  
+  (*
   let fenetre = ref (Array.make_matrix 12 20000 {Map.x = max_int; y =max_int ; z = 0.}) in
-  let _ = trajectoires_altitude 0 Map.flights [] in
-  simulation (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) Del.listeTriangle fenetre 5 20.;;
-
+  let _ = trajectoires_altitude2 0 Map.flights [] in
+  simulation2 (Map.marks,Map.runways,Map.taxiways,Del.listeTriangle,Map.flights) Del.listeTriangle fenetre 5 20.;;
+*)
 
 
 
